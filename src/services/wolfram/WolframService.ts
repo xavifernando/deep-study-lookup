@@ -227,32 +227,21 @@ export class WolframService {
 
     // 6. Arithmetic & Function Evaluation (e.g. "sqrt(256) + 4^3" or "sin(30) + cos(60)")
     try {
-      let evalExpr = q
-        .replace(/\^/g, "**")
-        .replace(/sqrt\(([^)]+)\)/gi, "Math.sqrt($1)")
-        .replace(/sin\(([^)]+)\)/gi, "Math.sin($1 * Math.PI / 180)")
-        .replace(/cos\(([^)]+)\)/gi, "Math.cos($1 * Math.PI / 180)")
-        .replace(/tan\(([^)]+)\)/gi, "Math.tan($1 * Math.PI / 180)")
-        .replace(/log\(([^)]+)\)/gi, "Math.log10($1)")
-        .replace(/ln\(([^)]+)\)/gi, "Math.log($1)");
-
-      if (/^[\d\s\+\-\*\/\.\(\)\,\Math\.sqrtcositanlgePI\*\*]+$/.test(evalExpr)) {
-        const result = Function(`"use strict"; return (${evalExpr})`)();
-        if (typeof result === "number" && !isNaN(result)) {
-          const formattedRes = Number(result.toFixed(6)).toString();
-          const steps = [
-            `Expression: \`${q}\``,
-            `Applied mathematical order of operations (PEMDAS)`,
-            `Exact calculated numerical value: **${formattedRes}**`,
-          ];
-          return {
-            query: q,
-            solution: formattedRes,
-            pods: [{ title: "Numerical Result", text: formattedRes }],
-            steps,
-            markdownFormatted: this.formatMarkdown(q, formattedRes, steps),
-          };
-        }
+      const result = this.safeEvaluateMath(q);
+      if (result !== null) {
+        const formattedRes = Number(result.toFixed(6)).toString();
+        const steps = [
+          `Expression: \`${q}\``,
+          `Applied mathematical order of operations (PEMDAS)`,
+          `Exact calculated numerical value: **${formattedRes}**`,
+        ];
+        return {
+          query: q,
+          solution: formattedRes,
+          pods: [{ title: "Numerical Result", text: formattedRes }],
+          steps,
+          markdownFormatted: this.formatMarkdown(q, formattedRes, steps),
+        };
       }
     } catch {
       // ignore
@@ -273,6 +262,116 @@ export class WolframService {
       steps,
       markdownFormatted: this.formatMarkdown(q, solution, steps),
     };
+  }
+
+  private safeEvaluateMath(expr: string): number | null {
+    let pos = 0;
+    const str = expr.replace(/\s+/g, "").toLowerCase();
+    if (!str) return null;
+
+    const parsePrimary = (): number => {
+      if (str[pos] === "(") {
+        pos++;
+        const val = parseExpression();
+        if (str[pos] === ")") pos++;
+        return val;
+      }
+      if (str.startsWith("sqrt(", pos)) {
+        pos += 5;
+        const val = parseExpression();
+        if (str[pos] === ")") pos++;
+        return Math.sqrt(val);
+      }
+      if (str.startsWith("sin(", pos)) {
+        pos += 4;
+        const val = parseExpression();
+        if (str[pos] === ")") pos++;
+        return Math.sin((val * Math.PI) / 180);
+      }
+      if (str.startsWith("cos(", pos)) {
+        pos += 4;
+        const val = parseExpression();
+        if (str[pos] === ")") pos++;
+        return Math.cos((val * Math.PI) / 180);
+      }
+      if (str.startsWith("tan(", pos)) {
+        pos += 4;
+        const val = parseExpression();
+        if (str[pos] === ")") pos++;
+        return Math.tan((val * Math.PI) / 180);
+      }
+      if (str.startsWith("log(", pos)) {
+        pos += 4;
+        const val = parseExpression();
+        if (str[pos] === ")") pos++;
+        return Math.log10(val);
+      }
+      if (str.startsWith("ln(", pos)) {
+        pos += 3;
+        const val = parseExpression();
+        if (str[pos] === ")") pos++;
+        return Math.log(val);
+      }
+      if (str.startsWith("pi", pos)) {
+        pos += 2;
+        return Math.PI;
+      }
+      if (str[pos] === "e" && (pos + 1 >= str.length || isNaN(Number(str[pos + 1])))) {
+        pos++;
+        return Math.E;
+      }
+      if (str[pos] === "-") {
+        pos++;
+        return -parsePrimary();
+      }
+      if (str[pos] === "+") {
+        pos++;
+        return parsePrimary();
+      }
+      const start = pos;
+      while (pos < str.length && /[0-9.]/.test(str[pos])) {
+        pos++;
+      }
+      if (start === pos) return 0;
+      return parseFloat(str.slice(start, pos));
+    };
+
+    const parsePower = (): number => {
+      let left = parsePrimary();
+      while (pos < str.length && str[pos] === "^") {
+        pos++;
+        const right = parsePrimary();
+        left = Math.pow(left, right);
+      }
+      return left;
+    };
+
+    const parseFactor = (): number => {
+      let left = parsePower();
+      while (pos < str.length && (str[pos] === "*" || str[pos] === "/")) {
+        const op = str[pos++];
+        const right = parsePower();
+        left = op === "*" ? left * right : left / right;
+      }
+      return left;
+    };
+
+    const parseExpression = (): number => {
+      let left = parseFactor();
+      while (pos < str.length && (str[pos] === "+" || str[pos] === "-")) {
+        const op = str[pos++];
+        const right = parseFactor();
+        left = op === "+" ? left + right : left - right;
+      }
+      return left;
+    };
+
+    try {
+      const res = parseExpression();
+      return typeof res === "number" && !isNaN(res) && isFinite(res) ? res : null;
+    } catch {
+      return null;
+    }
   }
 
   private formatMarkdown(query: string, solution: string, steps: string[]): string {

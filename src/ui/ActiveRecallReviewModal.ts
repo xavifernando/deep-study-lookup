@@ -1,4 +1,4 @@
-import { App, Modal, Notice, setIcon, TFile } from "obsidian";
+import { App, Modal, setIcon, TFile } from "obsidian";
 import { SpacedRepetitionService } from "../services/srs/SpacedRepetitionService";
 
 interface DueQuestionCard {
@@ -95,7 +95,7 @@ export class ActiveRecallReviewModal extends Modal {
       });
     }
 
-    const badge = header.createSpan({
+    header.createSpan({
       cls: "smart-lookup-review-badge",
       text: this.queue.length > 0 ? `Card ${this.currentIndex + 1} of ${this.queue.length}` : "Completed",
     });

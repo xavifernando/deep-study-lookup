@@ -12,10 +12,11 @@ export function formatDefinitionByStyle(
   const phonetic = entry.phonetic ? `/${entry.phonetic}/` : "";
 
   switch (style) {
-    case "tooltip_abbr":
+    case "tooltip_abbr": {
       // Renders as a hover popup tooltip natively in Obsidian Preview!
       const cleanTooltip = defText.replace(/"/g, "&quot;");
       return `<abbr title="${pos} ${cleanTooltip}">${entry.word}</abbr>`;
+    }
 
     case "callout":
       return `> [!info] ${entry.word} ${phonetic}\n> **${pos || "Meaning"}**: ${defText}${firstDef?.example ? `\n> *Example*: “${firstDef.example}”` : ""}`;
@@ -47,4 +48,10 @@ export function formatImageMarkdown(image: ImageResult, template: string): strin
   result = result.replace(/\{\{url\}\}/g, image.url);
   result = result.replace(/\{\{author\}\}/g, image.author || "");
   return result.trim();
+}
+
+export function splitSentences(text: string): string[] {
+  if (!text) return [];
+  const matches = text.match(/[^.!?\n]+(?:[.!?\n]+|$)/g);
+  return matches ? matches.map((s) => s.trim()).filter((s) => s.length > 0) : [text];
 }

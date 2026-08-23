@@ -1,6 +1,7 @@
 import { requestUrl } from "obsidian";
-import { PluginSettings, StudyNoteResult, StudyQuestion } from "../../types";
+import { PluginSettings, StudyNoteResult } from "../../types";
 import { RequestThrottle } from "../../utils/throttle";
+import { splitSentences } from "../../utils/markdown";
 
 export interface ResearchDossier {
   term: string;
@@ -77,10 +78,7 @@ export class StudyNoteAIService {
       summaryText = `"${cleanTerm}" is a foundational concept representing specific operational mechanisms, systematic interactions, and domain applications.`;
     }
 
-    const sentences = summaryText
-      .split(/(?<=[.!?])\s+/)
-      .map((s) => s.trim())
-      .filter((s) => s.length > 15);
+    const sentences = splitSentences(summaryText).filter((s) => s.length > 15);
 
     const primaryDefinition = sentences[0] || `${cleanTerm} is a foundational concept in its discipline.`;
     const keyMechanism = sentences[1] || `It operates as a primary regulatory and functional mechanism.`;
@@ -142,7 +140,7 @@ Return ONLY valid JSON matching this schema:
   "whyItMatters": "Why this concept is critical and where it is applied.",
   "commonTraps": "Common misconceptions, traps, or incorrect assumptions to avoid.",
   "quickLinks": ["Related Concept 1", "Related Concept 2", "Contrasting Concept 3"],
-  "visualDiagram": "graph TD\\n  A[\\\"Input / Stimulus\\\"] --> B[\\\"${dossier.term}\\\"]\\n  B --> C[\\\"Primary Mechanism\\\"]\\n  C --> D[\\\"Observed Result\\\"]",
+  "visualDiagram": "graph TD\\n  A[Input / Stimulus] --> B[${dossier.term}]\\n  B --> C[Primary Mechanism]\\n  C --> D[Observed Result]",
   "mnemonicHook": "Bizarre, vivid visual imagery connecting the term name to its primary function.",
   "memoryPalaceRoute": {
     "frontDoor": "Visual anchor for the definition at the front door",
@@ -160,7 +158,7 @@ Return ONLY valid JSON matching this schema:
           ? this.generateWithGemini(prompt, dossier.term, rawKey)
           : this.generateWithOpenAI(prompt, dossier.term, rawKey);
 
-        const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), timeoutMs));
+        const timeoutPromise = new Promise<null>((resolve) => window.setTimeout(() => resolve(null), timeoutMs));
         const res = await Promise.race([aiPromise, timeoutPromise]);
 
         if (res && res.simpleDefinition && res.keyRules && res.keyRules.length > 0) {

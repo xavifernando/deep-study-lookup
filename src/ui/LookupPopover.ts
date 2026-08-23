@@ -1,4 +1,4 @@
-import { App, Editor, Notice, Platform, setIcon } from "obsidian";
+import { App, Editor, Notice, Platform, setCssStyles, setIcon } from "obsidian";
 import {
   AIExplanationResult,
   DictionaryEntry,
@@ -89,15 +89,12 @@ export class LookupPopover {
     this.boundDocClick = this.handleDocumentClick.bind(this);
     this.boundKeyDown = this.handleKeyDown.bind(this);
 
-    this.el = document.createElement("div");
-    this.el.addClass("smart-lookup-popover");
+    this.el = document.body.createDiv({ cls: "smart-lookup-popover is-hidden" });
     this.el.setAttribute("role", "dialog");
     this.el.setAttribute("aria-label", "Smart Lookup Definition");
     if (Platform.isMobile) {
       this.el.addClass("smart-lookup-mobile-popover");
     }
-    this.el.style.display = "none";
-    document.body.appendChild(this.el);
 
     document.addEventListener("mousedown", this.boundDocClick);
     document.addEventListener("keydown", this.boundKeyDown);
@@ -176,7 +173,7 @@ export class LookupPopover {
     this.currentStudyPack = null;
     this.currentTranslation = null;
     this.el.empty();
-    this.el.style.display = "flex";
+    this.el.removeClass("is-hidden");
 
     const header = this.el.createDiv({ cls: "smart-lookup-header" });
     this.initDragHandling(header);
@@ -219,7 +216,7 @@ export class LookupPopover {
     }
 
     this.el.empty();
-    this.el.style.display = "flex";
+    this.el.removeClass("is-hidden");
 
     // 1. Header (Title, Phonetics, Socratic Chat, Wolfram, Audio, Close)
     this.renderHeader(entry);
@@ -638,17 +635,9 @@ export class LookupPopover {
     const sumBlock = container.createDiv({ cls: "smart-lookup-study-summary-card" });
     
     const defHeader = sumBlock.createDiv({ cls: "smart-lookup-def-badge-header" });
-    defHeader.style.display = "flex";
-    defHeader.style.justifyContent = "space-between";
-    defHeader.style.alignItems = "center";
     defHeader.createEl("h5", { text: "📌 Simple Definition", cls: "smart-lookup-feynman-label" });
     if (studyPack.sourceBadge) {
-      const badge = defHeader.createSpan({ cls: "smart-lookup-source-badge", text: studyPack.sourceBadge });
-      badge.style.fontSize = "11px";
-      badge.style.padding = "2px 6px";
-      badge.style.borderRadius = "4px";
-      badge.style.background = "var(--background-secondary-alt)";
-      badge.style.color = "var(--text-muted)";
+      defHeader.createSpan({ cls: "smart-lookup-source-badge", text: studyPack.sourceBadge });
     }
 
     sumBlock.createEl("p", { text: studyPack.simpleDefinition || studyPack.summary, cls: "smart-lookup-study-summary-text" });
@@ -826,13 +815,7 @@ export class LookupPopover {
 
   private displayAIResult(container: HTMLElement, res: AIExplanationResult): void {
     if (res.sourceBadge) {
-      const badge = container.createDiv({ cls: "smart-lookup-source-badge", text: res.sourceBadge });
-      badge.style.fontSize = "11px";
-      badge.style.padding = "2px 6px";
-      badge.style.marginBottom = "6px";
-      badge.style.borderRadius = "4px";
-      badge.style.background = "var(--background-secondary-alt)";
-      badge.style.color = "var(--text-muted)";
+      container.createDiv({ cls: "smart-lookup-source-badge", text: res.sourceBadge });
     }
     if (res.summary) {
       container.createEl("p", { cls: "smart-lookup-ai-summary", text: res.summary });
@@ -898,8 +881,6 @@ export class LookupPopover {
       // 🎴 Add to Anki Button with Deck Selector & Creator (Hotkey: Ctrl+Shift+A)
       if (this.settings.enableAnki) {
         const ankiWrap = footer.createDiv({ cls: "smart-lookup-anki-button-group" });
-        ankiWrap.style.display = "inline-flex";
-        ankiWrap.style.alignItems = "center";
 
         const currentDeck = this.selectedAnkiDeck || this.settings.ankiDeckName || "Default";
 
@@ -941,8 +922,6 @@ export class LookupPopover {
             cls: "smart-lookup-btn smart-lookup-btn-anki-picker",
             attr: { title: "Choose or Create Anki Deck" },
           });
-          pickerBtn.style.padding = "4px 6px";
-          pickerBtn.style.marginLeft = "2px";
           setIcon(pickerBtn, "chevron-down");
 
           pickerBtn.onclick = (e) => {
@@ -1003,8 +982,7 @@ export class LookupPopover {
       return;
     }
 
-    const menu = document.createElement("div");
-    menu.addClass("smart-lookup-insert-menu");
+    const menu = document.body.createDiv({ cls: "smart-lookup-insert-menu" });
 
     const addItem = (label: string, desc: string, style: InsertFormatType, replace = false) => {
       const item = menu.createDiv({ cls: "smart-lookup-menu-item" });
@@ -1025,8 +1003,6 @@ export class LookupPopover {
     addItem("Footnote", "[^word] note footnote", "footnote", true);
     addItem("Inline Bracket", "word [meaning]", "inline_bracket", true);
 
-    document.body.appendChild(menu);
-
     const rect = triggerEl.getBoundingClientRect();
     const menuWidth = 230;
     const menuHeight = 180;
@@ -1041,9 +1017,11 @@ export class LookupPopover {
       top = rect.bottom + 6;
     }
 
-    menu.style.position = "fixed";
-    menu.style.left = `${Math.round(left)}px`;
-    menu.style.top = `${Math.round(top)}px`;
+    setCssStyles(menu, {
+      position: "fixed",
+      left: `${Math.round(left)}px`,
+      top: `${Math.round(top)}px`,
+    });
   }
 
   private insertOrCopyMarkdown(markdown: string, successNotice: string, replaceSelection = false): void {
@@ -1097,8 +1075,10 @@ export class LookupPopover {
         newLeft = Math.max(10, Math.min(maxLeft, newLeft));
         newTop = Math.max(10, Math.min(maxTop, newTop));
 
-        this.el.style.left = `${Math.round(newLeft)}px`;
-        this.el.style.top = `${Math.round(newTop)}px`;
+        setCssStyles(this.el, {
+          left: `${Math.round(newLeft)}px`,
+          top: `${Math.round(newTop)}px`,
+        });
       };
 
       const onMouseUp = () => {
@@ -1143,7 +1123,7 @@ export class LookupPopover {
 
   hide(): void {
     this.isVisible = false;
-    this.el.style.display = "none";
+    this.el.addClass("is-hidden");
     this.imageHoverCard.hide();
     this.lightboxModal?.hide();
     document.querySelector(".smart-lookup-insert-menu")?.remove();

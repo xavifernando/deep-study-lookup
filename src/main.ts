@@ -315,7 +315,6 @@ export default class SmartLookupPlugin extends Plugin {
     this.addCommand({
       id: "lookup-selection",
       name: "Lookup definition for selected text",
-      hotkeys: [{ modifiers: ["Mod", "Shift"], key: "D" }],
       checkCallback: (checking: boolean) => {
         const activeLeaf = this.app.workspace.activeLeaf;
         if (!activeLeaf) return false;
@@ -336,7 +335,6 @@ export default class SmartLookupPlugin extends Plugin {
     this.addCommand({
       id: "summarize-paragraph",
       name: "Summarize and explain selected text",
-      hotkeys: [{ modifiers: ["Mod", "Shift"], key: "S" }],
       checkCallback: (checking: boolean) => {
         const activeLeaf = this.app.workspace.activeLeaf;
         if (!activeLeaf) return false;
@@ -522,25 +520,15 @@ export default class SmartLookupPlugin extends Plugin {
     if (!activeView) return;
 
     const container = activeView.contentEl;
-    const banner = document.createElement("div");
-    banner.addClass("smart-lookup-srs-banner");
-    banner.style.display = "flex";
-    banner.style.alignItems = "center";
-    banner.style.justifyContent = "space-between";
-    banner.style.padding = "8px 16px";
-    banner.style.background = "var(--background-secondary)";
-    banner.style.borderBottom = "1px solid var(--interactive-accent)";
-    banner.style.fontSize = "14px";
+    const banner = container.createDiv({ cls: "smart-lookup-srs-banner" });
 
-    const left = banner.createDiv();
+    const left = banner.createDiv({ cls: "smart-lookup-srs-banner-left" });
     left.createEl("strong", { text: "🧠 Active Recall Due Today" });
     const reps = typeof fm.reps === "number" ? fm.reps : 0;
     const ease = typeof fm.ease_factor === "number" ? fm.ease_factor : 2.5;
     left.createSpan({ text: ` (Repetition ${reps}, Ease: ${ease})` });
 
-    const right = banner.createDiv();
-    right.style.display = "flex";
-    right.style.gap = "6px";
+    const right = banner.createDiv({ cls: "smart-lookup-srs-banner-right" });
 
     const makeRateBtn = (label: string, rating: "hard" | "good" | "easy", colorClass: string) => {
       const btn = right.createEl("button", { cls: `smart-lookup-btn smart-lookup-btn-sm ${colorClass}`, text: label });

@@ -94,29 +94,18 @@ export class AnkiDeckModal extends Modal {
     });
 
     for (const cat in categories) {
-      const details = categoryCard.createEl("details", { cls: "smart-lookup-faq-item" });
-      details.style.marginBottom = "8px";
-      const summary = details.createEl("summary", { text: `📁 ${cat} (${categories[cat].length} decks)` });
-      summary.style.fontWeight = "bold";
-      summary.style.cursor = "pointer";
+      const details = categoryCard.createEl("details", { cls: "smart-lookup-faq-item smart-lookup-deck-category" });
+      details.createEl("summary", { text: `📁 ${cat} (${categories[cat].length} decks)`, cls: "smart-lookup-deck-summary" });
 
-      const listDiv = details.createDiv();
-      listDiv.style.display = "flex";
-      listDiv.style.flexDirection = "column";
-      listDiv.style.gap = "4px";
-      listDiv.style.padding = "6px 12px";
+      const listDiv = details.createDiv({ cls: "smart-lookup-deck-list" });
 
       categories[cat].forEach((subDeck) => {
-        const itemRow = listDiv.createDiv();
-        itemRow.style.display = "flex";
-        itemRow.style.justifyContent = "space-between";
-        itemRow.style.alignItems = "center";
+        const itemRow = listDiv.createDiv({ cls: "smart-lookup-deck-row" });
 
-        const label = itemRow.createSpan({ text: subDeck });
-        if (subDeck === selectedVal) {
-          label.style.fontWeight = "bold";
-          label.style.color = "var(--interactive-accent)";
-        }
+        const label = itemRow.createSpan({
+          text: subDeck,
+          cls: subDeck === selectedVal ? "smart-lookup-deck-label-active" : "",
+        });
 
         const pickBtn = itemRow.createEl("button", {
           cls: "smart-lookup-btn smart-lookup-btn-sm",

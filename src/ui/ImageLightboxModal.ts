@@ -8,12 +8,8 @@ export class ImageLightboxModal {
   private onInsertCallback?: (image: ImageResult) => void;
 
   constructor() {
-    this.overlayEl = document.createElement("div");
-    this.overlayEl.addClass("smart-lookup-lightbox-overlay");
-    this.overlayEl.style.display = "none";
-
+    this.overlayEl = document.body.createDiv({ cls: "smart-lookup-lightbox-overlay is-hidden" });
     this.cardEl = this.overlayEl.createDiv({ cls: "smart-lookup-lightbox-card" });
-    document.body.appendChild(this.overlayEl);
 
     this.overlayEl.addEventListener("click", (e) => {
       if (e.target === this.overlayEl) {
@@ -22,7 +18,7 @@ export class ImageLightboxModal {
     });
 
     document.addEventListener("keydown", (e) => {
-      if (this.overlayEl.style.display !== "none" && e.key === "Escape") {
+      if (!this.overlayEl.hasClass("is-hidden") && e.key === "Escape") {
         this.hide();
       }
     });
@@ -43,7 +39,7 @@ export class ImageLightboxModal {
 
     // 2. Large Image View Container
     const imgWrap = this.cardEl.createDiv({ cls: "smart-lookup-lightbox-img-wrap" });
-    const imgEl = imgWrap.createEl("img", {
+    imgWrap.createEl("img", {
       attr: {
         src: image.url,
         alt: image.title,
@@ -88,11 +84,11 @@ export class ImageLightboxModal {
       }
     };
 
-    this.overlayEl.style.display = "flex";
+    this.overlayEl.removeClass("is-hidden");
   }
 
   hide(): void {
-    this.overlayEl.style.display = "none";
+    this.overlayEl.addClass("is-hidden");
     this.currentImage = null;
   }
 

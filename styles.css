@@ -3,6 +3,11 @@
    Definitive Final Production Edition
    ========================================================== */
 
+/* Utility hidden class */
+.is-hidden {
+  display: none;
+}
+
 /* Floating Selection Trigger Pill */
 .smart-lookup-floating-pill {
   position: fixed;
@@ -2330,6 +2335,80 @@
 
 .smart-lookup-clickable-chapter:hover {
   background-color: var(--background-modifier-hover);
+}
+
+.smart-lookup-pill-action-btn {
+  border: none;
+  cursor: pointer;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.smart-lookup-pill-btn-accent {
+  background-color: var(--interactive-accent);
+  color: var(--text-on-accent);
+}
+
+.smart-lookup-srs-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background-color: var(--background-secondary);
+  border-bottom: 1px solid var(--interactive-accent);
+  font-size: 14px;
+}
+
+.smart-lookup-srs-banner-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.smart-lookup-srs-banner-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.smart-lookup-wolfram-answer {
+  font-size: 18px;
+  font-weight: bold;
+  color: var(--interactive-accent);
+}
+
+.smart-lookup-actions-group {
+  display: flex;
+  gap: 8px;
+}
+
+.smart-lookup-deck-category {
+  margin-bottom: 8px;
+}
+
+.smart-lookup-deck-summary {
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.smart-lookup-deck-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 12px;
+}
+
+.smart-lookup-deck-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.smart-lookup-deck-label-active {
+  font-weight: bold;
+  color: var(--interactive-accent);
 }
 
 

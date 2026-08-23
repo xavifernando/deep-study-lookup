@@ -1,6 +1,7 @@
 import { requestUrl } from "obsidian";
 import { TranslationResult } from "../../types";
 import { ITranslatorProvider } from "./ITranslatorProvider";
+import { splitSentences } from "../../utils/markdown";
 
 interface MyMemoryResponse {
   responseData?: {
@@ -103,7 +104,7 @@ export class FreeTranslatorProvider implements ITranslatorProvider {
   }
 
   private chunkText(text: string, maxLen = 380): string[] {
-    const sentences = text.split(/(?<=[.!?\n])\s+/);
+    const sentences = splitSentences(text);
     const chunks: string[] = [];
     let current = "";
 

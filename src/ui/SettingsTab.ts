@@ -1,6 +1,6 @@
 import { App, Notice, PluginSettingTab, Setting } from "obsidian";
 import type SmartLookupPlugin from "../main";
-import { AccentDialectType, AIProviderType, InsertFormatType, MODEL_PRESETS, RESEARCH_ENGINES, SUPPORTED_LANGUAGES, TriggerMode } from "../types";
+import { AccentDialectType, AIProviderType, InsertFormatType, MODEL_PRESETS, SUPPORTED_LANGUAGES, TriggerMode } from "../types";
 
 export class SmartLookupSettingTab extends PluginSettingTab {
   plugin: SmartLookupPlugin;
@@ -14,10 +14,10 @@ export class SmartLookupSettingTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
 
-    containerEl.createEl("h2", { text: "Smart Visual, Translation & Anki Lookup" });
+    new Setting(containerEl).setName("Smart Visual, Translation & Anki Lookup").setHeading();
 
     // --- Activation & Triggers ---
-    containerEl.createEl("h3", { text: "Activation & Pronunciation" });
+    new Setting(containerEl).setName("Activation & Pronunciation").setHeading();
 
     new Setting(containerEl)
       .setName("Trigger Mode")
@@ -60,7 +60,7 @@ export class SmartLookupSettingTab extends PluginSettingTab {
       );
 
     // --- Web Research Quick-Bar ---
-    containerEl.createEl("h3", { text: "Web Research Ribbon" });
+    new Setting(containerEl).setName("Web Research Ribbon").setHeading();
 
     new Setting(containerEl)
       .setName("Enable Web Research Ribbon")
@@ -87,7 +87,7 @@ export class SmartLookupSettingTab extends PluginSettingTab {
       });
 
     // --- Deep-Dive Study Notes & Spaced Repetition ---
-    containerEl.createEl("h3", { text: "Deep-Dive Study Notes & Spaced Repetition" });
+    new Setting(containerEl).setName("Deep-Dive Study Notes & Spaced Repetition").setHeading();
 
     new Setting(containerEl)
       .setName("Study Notes Vault Folder")
@@ -123,7 +123,7 @@ export class SmartLookupSettingTab extends PluginSettingTab {
       );
 
     // --- Vocabulary Log & Status Bar ---
-    containerEl.createEl("h3", { text: "Vocabulary Vault & Status Bar" });
+    new Setting(containerEl).setName("Vocabulary Vault & Status Bar").setHeading();
 
     new Setting(containerEl)
       .setName("Enable Vocabulary Logging")
@@ -163,7 +163,7 @@ export class SmartLookupSettingTab extends PluginSettingTab {
       );
 
     // --- Multi-Language Translation ---
-    containerEl.createEl("h3", { text: "Multi-Language Translation" });
+    new Setting(containerEl).setName("Multi-Language Translation").setHeading();
 
     new Setting(containerEl)
       .setName("Enable Translation")
@@ -193,7 +193,7 @@ export class SmartLookupSettingTab extends PluginSettingTab {
     }
 
     // --- Anki Flashcards Integration ---
-    containerEl.createEl("h3", { text: "Anki Flashcards Integration" });
+    new Setting(containerEl).setName("Anki Flashcards Integration").setHeading();
 
     new Setting(containerEl)
       .setName("Enable Anki Sync")
@@ -307,7 +307,7 @@ export class SmartLookupSettingTab extends PluginSettingTab {
     }
 
     // --- Insertion Options ---
-    containerEl.createEl("h3", { text: "Note Insertion Formats" });
+    new Setting(containerEl).setName("Note Insertion Formats").setHeading();
 
     new Setting(containerEl)
       .setName("Default Insert Format")
@@ -327,7 +327,7 @@ export class SmartLookupSettingTab extends PluginSettingTab {
       );
 
     // --- Visuals & Images ---
-    containerEl.createEl("h3", { text: "Visuals & Hover Preview" });
+    new Setting(containerEl).setName("Visuals & Hover Preview").setHeading();
 
     new Setting(containerEl)
       .setName("Enable Stock Image Search")
@@ -341,7 +341,7 @@ export class SmartLookupSettingTab extends PluginSettingTab {
       );
 
     // --- AI Explainer Backend ---
-    containerEl.createEl("h3", { text: "AI Context Explainer & Mnemonics (Optional)" });
+    new Setting(containerEl).setName("AI Context Explainer & Mnemonics (Optional)").setHeading();
 
     new Setting(containerEl)
       .setName("Enable AI Explanations")
@@ -436,7 +436,6 @@ export class SmartLookupSettingTab extends PluginSettingTab {
           slider
             .setLimits(5, 60, 5)
             .setValue(this.plugin.settings.aiTimeoutSeconds || 30)
-            .setDynamicTooltip()
             .onChange(async (val) => {
               this.plugin.settings.aiTimeoutSeconds = val;
               await this.plugin.saveSettings();

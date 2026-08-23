@@ -1,5 +1,6 @@
 import { requestUrl } from "obsidian";
 import { PluginSettings } from "../../types";
+import { splitSentences } from "../../utils/markdown";
 
 export interface ParagraphAnalysisResult {
   title: string;
@@ -87,7 +88,7 @@ Return valid JSON:
           }
         })();
 
-        const timeoutPromise = new Promise<string>((resolve) => setTimeout(() => resolve(""), timeoutMs));
+        const timeoutPromise = new Promise<string>((resolve) => window.setTimeout(() => resolve(""), timeoutMs));
         textResponse = await Promise.race([aiCall, timeoutPromise]);
 
         if (textResponse) {
@@ -106,10 +107,7 @@ Return valid JSON:
     }
 
     // High quality Distributed NLP Extraction across beginning, middle, and end of the entire page
-    const sentences = text
-      .split(/(?<=[.!?])\s+/)
-      .map((s) => s.trim())
-      .filter((s) => s.length > 15);
+    const sentences = splitSentences(text).filter((s) => s.length > 15);
 
     const firstSent = sentences[0] || text.slice(0, 80);
     const titleWords = firstSent.split(/\s+/).slice(0, 6).join(" ").replace(/[,:;.!?]+$/, "");

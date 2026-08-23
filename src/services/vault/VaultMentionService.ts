@@ -24,9 +24,10 @@ export class VaultMentionService {
     const files = this.app.vault.getMarkdownFiles();
     const regex = new RegExp(`\\b${cleanTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i");
 
+    const configDir = (this.app.vault as any).configDir || ".obsidian";
     for (const file of files) {
       if (currentFilePath && file.path === currentFilePath) continue;
-      if (file.path.startsWith(".obsidian")) continue;
+      if (file.path.startsWith(configDir)) continue;
 
       try {
         const content = await this.app.vault.cachedRead(file);

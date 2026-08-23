@@ -2,8 +2,9 @@ import { requestUrl } from "obsidian";
 import { AIExplanationResult, PluginSettings } from "../../types";
 import { LookupCache } from "../cache/LookupCache";
 import { GeminiProvider } from "./GeminiProvider";
-import { AIExplanationOptions, IAIProvider } from "./IAIProvider";
+import { AIExplanationOptions } from "./IAIProvider";
 import { OpenAICompatibleProvider } from "./OpenAICompatibleProvider";
+import { splitSentences } from "../../utils/markdown";
 
 export class AIManager {
   private geminiProvider: GeminiProvider;
@@ -100,7 +101,7 @@ export class AIManager {
       // Gracefully fall through to contextual summary
     }
 
-    const sentences = extract ? extract.split(/(?<=[.!?])\s+/).filter(s => s.length > 10) : [];
+    const sentences = extract ? splitSentences(extract).filter(s => s.length > 10) : [];
     const baseSummary = sentences[0] || (contextSentence
       ? `Referenced in note context: "${contextSentence.slice(0, 140)}..."`
       : `Definition and literature reference for "${term}".`);

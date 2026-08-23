@@ -1,3 +1,4 @@
+import { setCssStyles } from "obsidian";
 import { ImageResult } from "../types";
 
 export class ImageHoverCard {
@@ -6,10 +7,7 @@ export class ImageHoverCard {
   private hideTimeout: number | null = null;
 
   constructor() {
-    this.el = document.createElement("div");
-    this.el.addClass("smart-lookup-image-hover-card");
-    this.el.style.display = "none";
-    document.body.appendChild(this.el);
+    this.el = document.body.createDiv({ cls: "smart-lookup-image-hover-card is-hidden" });
 
     this.el.addEventListener("mouseenter", () => {
       if (this.hideTimeout) {
@@ -33,7 +31,7 @@ export class ImageHoverCard {
     this.el.empty();
 
     const imgContainer = this.el.createDiv({ cls: "smart-lookup-hover-img-wrap" });
-    const img = imgContainer.createEl("img", {
+    imgContainer.createEl("img", {
       attr: {
         src: image.url,
         alt: image.title,
@@ -51,7 +49,7 @@ export class ImageHoverCard {
       meta.createSpan({ text: `Source: ${image.source}` });
     }
 
-    this.el.style.display = "flex";
+    this.el.removeClass("is-hidden");
 
     // Position adjacent to thumbnail
     const cardWidth = 300;
@@ -67,8 +65,10 @@ export class ImageHoverCard {
     }
     if (left < 16) left = 16;
 
-    this.el.style.left = `${Math.round(left)}px`;
-    this.el.style.top = `${Math.round(top)}px`;
+    setCssStyles(this.el, {
+      left: `${Math.round(left)}px`,
+      top: `${Math.round(top)}px`,
+    });
   }
 
   scheduleHide(delay = 150): void {
@@ -79,7 +79,7 @@ export class ImageHoverCard {
   }
 
   hide(): void {
-    this.el.style.display = "none";
+    this.el.addClass("is-hidden");
     this.currentImage = null;
   }
 

@@ -58,13 +58,7 @@ export class ParagraphSummaryModal extends Modal {
       summaryCard.createEl("h3", { text: `📌 ${res.title}` });
 
       if (res.sourceBadge) {
-        const badge = summaryCard.createDiv({ cls: "smart-lookup-source-badge", text: res.sourceBadge });
-        badge.style.fontSize = "11px";
-        badge.style.padding = "2px 6px";
-        badge.style.marginBottom = "6px";
-        badge.style.borderRadius = "4px";
-        badge.style.background = "var(--background-secondary-alt)";
-        badge.style.color = "var(--text-muted)";
+        summaryCard.createDiv({ cls: "smart-lookup-source-badge", text: res.sourceBadge });
       }
 
       if (res.summaryBulletPoints && res.summaryBulletPoints.length > 0) {

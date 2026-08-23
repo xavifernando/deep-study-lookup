@@ -22,8 +22,6 @@ export class WolframSolverModal extends Modal {
 
   async onOpen() {
     this.modalEl.addClass("smart-lookup-wolfram-modal");
-    this.modalEl.style.width = "75vw";
-    this.modalEl.style.maxWidth = "780px";
 
     if (this.currentQuery) {
       await this.doSolve(this.currentQuery);
@@ -59,7 +57,6 @@ export class WolframSolverModal extends Modal {
 
     // 2. Input Search Bar
     const searchRow = header.createDiv({ cls: "smart-lookup-yt-search-row" });
-    searchRow.style.marginTop = "10px";
 
     const input = searchRow.createEl("input", {
       type: "text",
@@ -88,7 +85,6 @@ export class WolframSolverModal extends Modal {
 
     // 3. Scrollable Result Body
     const body = contentEl.createDiv({ cls: "smart-lookup-paragraph-scroll-body" });
-    body.style.padding = "16px";
 
     if (this.isLoading) {
       const loading = body.createDiv({ cls: "smart-lookup-loading-box" });
@@ -110,10 +106,7 @@ export class WolframSolverModal extends Modal {
     // Direct Answer Card
     const resCard = body.createDiv({ cls: "smart-lookup-para-title-card" });
     resCard.createEl("h4", { text: "🎯 Direct Solution" });
-    const ansP = resCard.createEl("p", { cls: "smart-lookup-study-summary-text" });
-    ansP.style.fontSize = "18px";
-    ansP.style.fontWeight = "bold";
-    ansP.style.color = "var(--interactive-accent)";
+    const ansP = resCard.createEl("p", { cls: "smart-lookup-study-summary-text smart-lookup-wolfram-answer" });
     ansP.setText(this.currentResult.solution);
 
     // Step-by-Step Breakdown
@@ -121,8 +114,6 @@ export class WolframSolverModal extends Modal {
       const stepCard = body.createDiv({ cls: "smart-lookup-para-bullets" });
       stepCard.createEl("h4", { text: "🪜 Step-by-Step Mathematical Derivation" });
       const ol = stepCard.createEl("ol");
-      ol.style.paddingLeft = "20px";
-      ol.style.lineHeight = "1.8";
       this.currentResult.steps.forEach((st) => {
         ol.createEl("li", { text: st });
       });
@@ -130,15 +121,7 @@ export class WolframSolverModal extends Modal {
 
     // Action Buttons Row
     const actionRow = contentEl.createDiv({ cls: "smart-lookup-paragraph-actions" });
-    actionRow.style.padding = "12px 16px";
-    actionRow.style.display = "flex";
-    actionRow.style.gap = "8px";
-    actionRow.style.flexWrap = "wrap";
-    actionRow.style.justifyContent = "space-between";
-
-    const leftActions = actionRow.createDiv();
-    leftActions.style.display = "flex";
-    leftActions.style.gap = "8px";
+    const leftActions = actionRow.createDiv({ cls: "smart-lookup-actions-group" });
 
     // 📥 Insert into Note
     const insertBtn = leftActions.createEl("button", {
