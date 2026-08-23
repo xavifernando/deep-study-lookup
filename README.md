@@ -50,6 +50,6 @@ An intelligent, multi-modal research and learning assistant for Obsidian. Look u
 
 ## Author & License
 
-Created by **[xaviersethu](https://github.com/xaviersethu)**.
+Created by **[xavifernando](https://github.com/xavifernando)**.
 
 Licensed under the [MIT License](LICENSE).

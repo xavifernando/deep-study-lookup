@@ -16,7 +16,7 @@
     "ai",
     "hover-preview"
   ],
-  "author": "xaviersethu",
+  "author": "xavifernando",
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^20.11.0",

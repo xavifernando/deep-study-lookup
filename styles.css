@@ -6,7 +6,7 @@
 /* Floating Selection Trigger Pill */
 .smart-lookup-floating-pill {
   position: fixed;
-  z-index: 999999 !important;
+  z-index: 999999;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -42,7 +42,7 @@
 /* Main Lookup Popover */
 .smart-lookup-popover {
   position: fixed;
-  z-index: 1000000 !important;
+  z-index: 1000000;
   width: 440px;
   max-width: calc(100vw - 28px);
   max-height: 570px;
@@ -60,38 +60,30 @@
 /* Mobile Viewport Responsive Styling */
 .smart-lookup-mobile-popover,
 .is-mobile .smart-lookup-popover {
-  width: calc(100vw - 16px) !important;
-  max-width: calc(100vw - 16px) !important;
-  left: 8px !important;
-  right: 8px !important;
-  max-height: 80vh !important;
-  border-radius: 14px !important;
+  width: calc(100vw - 16px);
+  max-width: calc(100vw - 16px);
+  left: 8px;
+  right: 8px;
+  max-height: 80vh;
+  border-radius: 14px;
 }
 
 .smart-lookup-mobile-pill,
 .is-mobile .smart-lookup-floating-pill {
-  padding: 6px 12px !important;
-  font-size: 13px !important;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4) !important;
+  padding: 6px 12px;
+  font-size: 13px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
 }
 
 /* Ensure Sub-Modals Always Render in Front of Popover */
-.modal-container:has(.smart-lookup-wolfram-modal),
-.modal-container:has(.smart-lookup-youtube-modal),
-.modal-container:has(.smart-lookup-anki-modal),
-.modal-container:has(.smart-lookup-paragraph-modal),
-.modal-container:has(.smart-lookup-pdf-modal),
-.modal-container:has(.smart-lookup-compare-modal),
-.modal-container:has(.smart-lookup-recall-modal) {
-  z-index: 2000000 !important;
-}
+
 
 .smart-lookup-wolfram-modal,
 .smart-lookup-youtube-modal,
 .smart-lookup-anki-modal,
 .smart-lookup-paragraph-modal,
 .smart-lookup-pdf-modal {
-  z-index: 2000001 !important;
+  z-index: 2000001;
 }
 
 /* Popover Header */
@@ -109,9 +101,9 @@
 
 .smart-lookup-header.smart-lookup-is-dragging,
 .smart-lookup-popover.smart-lookup-is-dragging {
-  cursor: grabbing !important;
-  user-select: none !important;
-  transition: none !important;
+  cursor: grabbing;
+  user-select: none;
+  transition: none;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
 }
 
@@ -355,7 +347,7 @@
   background: var(--background-secondary-alt, var(--background-secondary));
   border-bottom: 1px solid var(--background-modifier-border);
   overflow-x: auto;
-  scrollbar-width: thin;
+  
   flex-shrink: 0;
 }
 
@@ -386,7 +378,7 @@
 /* Image Hover Preview Card */
 .smart-lookup-image-hover-card {
   position: fixed;
-  z-index: 3000000 !important;
+  z-index: 3000000;
   width: 320px;
   background: var(--background-primary);
   border: 1px solid var(--background-modifier-border);
@@ -441,7 +433,7 @@
 .smart-lookup-lightbox-overlay {
   position: fixed;
   inset: 0;
-  z-index: 3000005 !important;
+  z-index: 3000005;
   background: rgba(0, 0, 0, 0.75);
   backdrop-filter: blur(5px);
   display: flex;
@@ -1035,7 +1027,7 @@
 
 /* Insert Format Dropdown Menu (Always on top) */
 .smart-lookup-insert-menu {
-  z-index: 3500000 !important;
+  z-index: 3500000;
   position: fixed;
   background: var(--background-primary);
   border: 1px solid var(--background-modifier-border);
@@ -1812,7 +1804,7 @@
 
 /* Voice Dictation Mic Active State */
 .smart-lookup-mic-listening {
-  color: #ef4444 !important;
+  color: #ef4444;
   animation: smartLookupPulse 1s infinite alternate;
 }
 
@@ -1868,16 +1860,16 @@
 .smart-lookup-compare-modal,
 .smart-lookup-paragraph-modal,
 .smart-lookup-voice-modal {
-  padding: 22px 26px !important;
-  max-width: 680px !important;
-  width: 90vw !important;
-  box-sizing: border-box !important;
-  overflow: visible !important;
+  padding: 22px 26px;
+  max-width: 680px;
+  width: 90vw;
+  box-sizing: border-box;
+  overflow: visible;
 }
 
 .smart-lookup-paragraph-modal .modal-content {
-  padding: 0 !important;
-  overflow-x: hidden !important;
+  padding: 0;
+  overflow-x: hidden;
 }
 
 .smart-lookup-compare-header,
@@ -2037,8 +2029,8 @@
    💬 Interactive Socratic AI Chat Modal
    ========================================================== */
 .smart-lookup-chat-modal {
-  max-width: 640px !important;
-  width: 90vw !important;
+  max-width: 640px;
+  width: 90vw;
   display: flex;
   flex-direction: column;
 }
@@ -2154,8 +2146,8 @@
    🎬 YouTube Video Summary Modal & Chapters
    ========================================================== */
 .smart-lookup-youtube-summary-modal {
-  max-width: 680px !important;
-  width: 90vw !important;
+  max-width: 680px;
+  width: 90vw;
 }
 
 .smart-lookup-chapter-row {
@@ -2175,8 +2167,8 @@
    📄 PDF & Document Reader & Note Studio
    ========================================================== */
 .smart-lookup-pdf-modal {
-  max-width: 780px !important;
-  width: 92vw !important;
+  max-width: 780px;
+  width: 92vw;
   display: flex;
   flex-direction: column;
 }
@@ -2254,8 +2246,8 @@
    🌟 Unified Smart Study & Research Studio
    ========================================================== */
 .smart-lookup-studio-modal {
-  max-width: 860px !important;
-  width: 94vw !important;
+  max-width: 860px;
+  width: 94vw;
   display: flex;
   flex-direction: column;
 }
