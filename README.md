@@ -1,4 +1,4 @@
-# Deep Study & Visual Lookup for Obsidian
+# Deep Study and Visual Lookup for Obsidian
 
 An intelligent, multi-modal research and learning assistant for Obsidian. Look up definitions, synthesize pedagogical study notes with mnemonics, solve equations, sync cards to Anki, and research across Markdown notes and PDFs.
 
@@ -23,7 +23,7 @@ An intelligent, multi-modal research and learning assistant for Obsidian. Look u
 
 ### From Community Plugins (Once Approved)
 1. Open **Settings** $\rightarrow$ **Community plugins**.
-2. Search for **Deep Study & Visual Lookup**.
+2. Search for **Deep Study and Visual Lookup**.
 3. Click **Install**, then **Enable**.
 
 ### Manual Installation
