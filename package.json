@@ -1,0 +1,29 @@
+{
+  "name": "deep-study-lookup",
+  "version": "1.0.0",
+  "description": "Look up definitions, synthesize deep-dive study notes with mnemonics, solve equations, sync cards to Anki, and research across Markdown notes and PDFs.",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "node esbuild.config.mjs production",
+    "test": "node tests/bundleAndRunTests.mjs"
+  },
+  "keywords": [
+    "obsidian",
+    "obsidian-plugin",
+    "dictionary",
+    "image-lookup",
+    "ai",
+    "hover-preview"
+  ],
+  "author": "xaviersethu",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "builtin-modules": "3.3.0",
+    "esbuild": "0.19.11",
+    "obsidian": "latest",
+    "tslib": "2.6.2",
+    "typescript": "5.3.3"
+  }
+}

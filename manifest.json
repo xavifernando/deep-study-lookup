@@ -1,0 +1,10 @@
+{
+  "id": "deep-study-lookup",
+  "name": "Deep Study & Visual Lookup",
+  "version": "1.0.0",
+  "minAppVersion": "1.1.0",
+  "description": "Look up definitions, synthesize deep-dive study notes with mnemonics, solve equations, sync cards to Anki, and research across Markdown notes and PDFs.",
+  "author": "xaviersethu",
+  "authorUrl": "https://github.com/xaviersethu",
+  "isDesktopOnly": false
+}

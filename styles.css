@@ -1,0 +1,2346 @@
+/* ==========================================================
+   Obsidian Smart Visual, Translation, Anki & Cornell Styles
+   Definitive Final Production Edition
+   ========================================================== */
+
+/* Floating Selection Trigger Pill */
+.smart-lookup-floating-pill {
+  position: fixed;
+  z-index: 999999 !important;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background-color: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border-radius: var(--radius-pill, 9999px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  user-select: none;
+  font-size: 12px;
+  font-weight: 500;
+  animation: smartLookupFadeIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.smart-lookup-floating-pill:hover {
+  transform: translateY(-1px) scale(1.03);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.32);
+}
+
+.smart-lookup-pill-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.smart-lookup-pill-icon svg {
+  width: 13px;
+  height: 13px;
+}
+
+/* Main Lookup Popover */
+.smart-lookup-popover {
+  position: fixed;
+  z-index: 1000000 !important;
+  width: 440px;
+  max-width: calc(100vw - 28px);
+  max-height: 570px;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m, 10px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  color: var(--text-normal);
+  box-sizing: border-box;
+}
+
+/* Mobile Viewport Responsive Styling */
+.smart-lookup-mobile-popover,
+.is-mobile .smart-lookup-popover {
+  width: calc(100vw - 16px) !important;
+  max-width: calc(100vw - 16px) !important;
+  left: 8px !important;
+  right: 8px !important;
+  max-height: 80vh !important;
+  border-radius: 14px !important;
+}
+
+.smart-lookup-mobile-pill,
+.is-mobile .smart-lookup-floating-pill {
+  padding: 6px 12px !important;
+  font-size: 13px !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Ensure Sub-Modals Always Render in Front of Popover */
+.modal-container:has(.smart-lookup-wolfram-modal),
+.modal-container:has(.smart-lookup-youtube-modal),
+.modal-container:has(.smart-lookup-anki-modal),
+.modal-container:has(.smart-lookup-paragraph-modal),
+.modal-container:has(.smart-lookup-pdf-modal),
+.modal-container:has(.smart-lookup-compare-modal),
+.modal-container:has(.smart-lookup-recall-modal) {
+  z-index: 2000000 !important;
+}
+
+.smart-lookup-wolfram-modal,
+.smart-lookup-youtube-modal,
+.smart-lookup-anki-modal,
+.smart-lookup-paragraph-modal,
+.smart-lookup-pdf-modal {
+  z-index: 2000001 !important;
+}
+
+/* Popover Header */
+.smart-lookup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--background-modifier-border);
+  background: var(--background-secondary);
+  flex-shrink: 0;
+  cursor: grab;
+  user-select: none;
+}
+
+.smart-lookup-header.smart-lookup-is-dragging,
+.smart-lookup-popover.smart-lookup-is-dragging {
+  cursor: grabbing !important;
+  user-select: none !important;
+  transition: none !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+}
+
+.smart-lookup-drag-handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  opacity: 0.45;
+  margin-right: 2px;
+  cursor: grab;
+  transition: opacity 0.15s ease, color 0.15s ease;
+}
+
+.smart-lookup-drag-handle:hover {
+  opacity: 1;
+  color: var(--interactive-accent);
+}
+
+.smart-lookup-drag-handle svg {
+  width: 14px;
+  height: 14px;
+}
+
+.smart-lookup-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  overflow: hidden;
+}
+
+.smart-lookup-back-btn {
+  padding: 3px;
+  margin-right: 2px;
+}
+
+.smart-lookup-back-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.smart-lookup-word-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-normal);
+  text-transform: capitalize;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.smart-lookup-phonetic {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.smart-lookup-difficulty-badge {
+  font-size: 10px;
+  font-weight: 600;
+  background: var(--background-modifier-hover);
+  color: var(--interactive-accent);
+  padding: 1px 6px;
+  border-radius: var(--radius-s, 4px);
+  border: 1px solid var(--background-modifier-border);
+}
+
+.smart-lookup-word-subtitle {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 240px;
+}
+
+/* Popover Tab Switcher Bar */
+.smart-lookup-popover-tab-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--background-secondary);
+  border-bottom: 1px solid var(--background-modifier-border);
+  flex-shrink: 0;
+}
+
+.smart-lookup-popover-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: var(--radius-s, 6px);
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.smart-lookup-popover-tab-btn:hover {
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+}
+
+.smart-lookup-popover-tab-btn.is-active {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border-color: var(--interactive-accent);
+  font-weight: 600;
+}
+
+/* Category Badge Pill */
+.smart-lookup-badge-pill {
+  display: inline-block;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--interactive-accent);
+  background: rgba(var(--interactive-accent-rgb, 120, 100, 240), 0.15);
+  border-radius: var(--radius-s, 4px);
+  margin-bottom: 8px;
+}
+
+.smart-lookup-key-badge {
+  display: inline-block;
+  font-size: 9px;
+  font-family: inherit;
+  font-weight: 600;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: var(--background-modifier-border);
+  color: var(--text-muted);
+  border: 1px solid var(--background-modifier-border-focus, rgba(255, 255, 255, 0.15));
+  margin-left: 3px;
+  line-height: 1.1;
+  vertical-align: middle;
+}
+
+/* Complexity Tier Segmented Selector */
+.smart-lookup-complexity-wrap {
+  display: inline-flex;
+  gap: 3px;
+  background: var(--background-modifier-form-field, rgba(0, 0, 0, 0.1));
+  padding: 2px;
+  border-radius: var(--radius-s, 6px);
+  margin-left: auto;
+}
+
+.smart-lookup-tier-btn {
+  padding: 2px 7px;
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: var(--radius-s, 4px);
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.smart-lookup-tier-btn:hover {
+  color: var(--text-normal);
+  background: var(--background-modifier-hover);
+}
+
+.smart-lookup-tier-btn.is-active {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  font-weight: 600;
+}
+
+/* AI Context Explainer Card */
+.smart-lookup-ai-context-card {
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: var(--background-secondary-alt, var(--background-secondary));
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m, 8px);
+}
+
+.smart-lookup-ai-context-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--interactive-accent);
+  margin-bottom: 6px;
+}
+
+.smart-lookup-ai-context-text {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-normal);
+  margin: 0;
+}
+
+.smart-lookup-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.smart-lookup-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  padding: 5px;
+  border-radius: var(--radius-s, 4px);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.smart-lookup-icon-btn:hover {
+  background-color: var(--background-modifier-hover);
+  color: var(--text-normal);
+}
+
+.smart-lookup-icon-btn svg {
+  width: 15px;
+  height: 15px;
+}
+
+/* Visual Image Thumbnails Strip */
+.smart-lookup-image-bar {
+  display: flex;
+  gap: 6px;
+  padding: 8px 12px;
+  background: var(--background-secondary-alt, var(--background-secondary));
+  border-bottom: 1px solid var(--background-modifier-border);
+  overflow-x: auto;
+  scrollbar-width: thin;
+  flex-shrink: 0;
+}
+
+.smart-lookup-image-thumb {
+  position: relative;
+  flex: 0 0 68px;
+  height: 48px;
+  border-radius: var(--radius-s, 6px);
+  overflow: hidden;
+  cursor: pointer;
+  border: 1px solid var(--background-modifier-border);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.smart-lookup-image-thumb:hover {
+  transform: translateY(-2px);
+  border-color: var(--interactive-accent);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.smart-lookup-image-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Image Hover Preview Card */
+.smart-lookup-image-hover-card {
+  position: fixed;
+  z-index: 3000000 !important;
+  width: 320px;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m, 10px);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: smartLookupFadeIn 0.15s ease-out;
+  pointer-events: auto;
+}
+
+.smart-lookup-hover-img-wrap {
+  width: 100%;
+  height: 180px;
+  background: var(--background-secondary);
+  overflow: hidden;
+}
+
+.smart-lookup-hover-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.smart-lookup-image-hover-card:hover .smart-lookup-hover-img-wrap img {
+  transform: scale(1.04);
+}
+
+.smart-lookup-hover-info {
+  padding: 8px 12px;
+  background: var(--background-primary);
+}
+
+.smart-lookup-hover-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-normal);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.smart-lookup-hover-meta {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* Lightbox Modal (Full-Screen Image Popup) */
+.smart-lookup-lightbox-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 3000005 !important;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: smartLookupFadeIn 0.15s ease-out;
+}
+
+.smart-lookup-lightbox-card {
+  max-width: 85vw;
+  max-height: 88vh;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-l, 12px);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: smartLookupPopIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.smart-lookup-lightbox-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--background-modifier-border);
+  background: var(--background-secondary);
+}
+
+.smart-lookup-lightbox-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-normal);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: calc(85vw - 80px);
+}
+
+.smart-lookup-lightbox-img-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0f172a;
+  max-height: 65vh;
+  overflow: hidden;
+}
+
+.smart-lookup-lightbox-img-wrap img {
+  max-height: 65vh;
+  max-width: 85vw;
+  object-fit: contain;
+  display: block;
+}
+
+.smart-lookup-lightbox-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-top: 1px solid var(--background-modifier-border);
+  background: var(--background-secondary);
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.smart-lookup-lightbox-meta {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.smart-lookup-lightbox-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Popover Scrollable Body */
+.smart-lookup-body {
+  padding: 12px 14px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.smart-lookup-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 24px 16px;
+  justify-content: center;
+  color: var(--text-muted);
+}
+
+.smart-lookup-spinner svg {
+  width: 18px;
+  height: 18px;
+  animation: smartLookupSpin 1s linear infinite;
+}
+
+.smart-lookup-pos-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--interactive-accent);
+  background: var(--background-modifier-hover);
+  padding: 2px 7px;
+  border-radius: var(--radius-s, 4px);
+  margin-bottom: 6px;
+}
+
+.smart-lookup-meaning-block {
+  margin-bottom: 12px;
+}
+
+.smart-lookup-def-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.smart-lookup-def-num {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.smart-lookup-def-text {
+  margin: 0;
+  color: var(--text-normal);
+}
+
+.smart-lookup-example {
+  margin: 3px 0 0 0;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.smart-lookup-tags-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.smart-lookup-tag-label {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.smart-lookup-tag-chip {
+  font-size: 11px;
+  background: var(--background-secondary);
+  color: var(--text-normal);
+  padding: 1px 6px;
+  border-radius: var(--radius-s, 4px);
+  border: 1px solid var(--background-modifier-border);
+}
+
+.smart-lookup-clickable-tag {
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.smart-lookup-clickable-tag:hover {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border-color: var(--interactive-accent);
+  transform: translateY(-1px);
+}
+
+/* Sleek Minimalist Research Icon Ribbon */
+.smart-lookup-research-ribbon {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  background: var(--background-secondary);
+  border-radius: var(--radius-s, 6px);
+  border: 1px solid var(--background-modifier-border);
+  margin-top: 10px;
+  margin-bottom: 8px;
+}
+
+.smart-lookup-ribbon-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.smart-lookup-ribbon-compass svg {
+  width: 13px;
+  height: 13px;
+  color: var(--interactive-accent);
+}
+
+.smart-lookup-ribbon-icons {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.smart-lookup-ribbon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s, 4px);
+  color: var(--text-normal);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.smart-lookup-ribbon-btn:hover {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border-color: var(--interactive-accent);
+  transform: translateY(-1px);
+}
+
+.smart-lookup-ribbon-icon-inner svg {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+
+/* Translator Box */
+.smart-lookup-trans-box {
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: var(--background-secondary);
+  border-radius: var(--radius-s, 6px);
+  border: 1px solid var(--background-modifier-border);
+}
+
+.smart-lookup-trans-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.smart-lookup-trans-title {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-normal);
+}
+
+.smart-lookup-trans-icon svg {
+  width: 14px;
+  height: 14px;
+  color: var(--interactive-accent);
+}
+
+.smart-lookup-lang-select {
+  padding: 2px 6px;
+  font-size: 11px;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s, 4px);
+  color: var(--text-normal);
+}
+
+.smart-lookup-trans-content {
+  font-size: 13px;
+}
+
+.smart-lookup-trans-result-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.smart-lookup-trans-text {
+  font-weight: 500;
+  color: var(--interactive-accent);
+}
+
+.smart-lookup-trans-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.smart-lookup-trans-loading {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Deep-Dive Study Notes & FAQs Box */
+.smart-lookup-study-box,
+.smart-lookup-cornell-box {
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: var(--background-secondary);
+  border-radius: var(--radius-s, 6px);
+  border: 1px solid var(--background-modifier-border);
+}
+
+.smart-lookup-study-header,
+.smart-lookup-cornell-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.smart-lookup-study-title,
+.smart-lookup-cornell-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--interactive-accent);
+}
+
+.smart-lookup-study-icon svg,
+.smart-lookup-cornell-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.smart-lookup-study-btn,
+.smart-lookup-cornell-btn {
+  width: 100%;
+  font-size: 12px;
+  padding: 6px 10px;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s, 4px);
+  color: var(--text-normal);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.smart-lookup-study-btn:hover,
+.smart-lookup-cornell-btn:hover {
+  background: var(--background-modifier-hover);
+}
+
+.smart-lookup-study-summary-card,
+.smart-lookup-cornell-summary-card {
+  background: var(--background-primary);
+  padding: 8px 10px;
+  border-radius: var(--radius-s, 4px);
+  border: 1px solid var(--background-modifier-border);
+  margin-bottom: 8px;
+  font-size: 12px;
+}
+
+.smart-lookup-study-summary-text,
+.smart-lookup-cornell-summary-text {
+  margin: 4px 0 8px 0;
+  color: var(--text-normal);
+  line-height: 1.4;
+}
+
+.smart-lookup-mnemonic-box {
+  background: var(--background-secondary-alt, var(--background-secondary));
+  padding: 6px 10px;
+  border-radius: var(--radius-s, 4px);
+  border-left: 3px solid #f59e0b;
+  margin-bottom: 8px;
+  font-size: 12px;
+}
+
+.smart-lookup-mnemonic-text {
+  color: var(--text-normal);
+}
+
+.smart-lookup-roots-box {
+  background: var(--background-secondary-alt, var(--background-secondary));
+  padding: 6px 10px;
+  border-radius: var(--radius-s, 4px);
+  border-left: 3px solid #8b5cf6;
+  margin-bottom: 8px;
+  font-size: 12px;
+}
+
+.smart-lookup-roots-text {
+  color: var(--text-normal);
+}
+
+.smart-lookup-btn-canvas {
+  background: rgba(139, 92, 246, 0.12);
+  color: var(--text-normal);
+  border-color: rgba(139, 92, 246, 0.35);
+}
+
+.smart-lookup-btn-canvas:hover {
+  background: rgba(139, 92, 246, 0.22);
+  border-color: #8b5cf6;
+}
+
+.smart-lookup-study-faq-wrap,
+.smart-lookup-cornell-faq-wrap {
+  margin-top: 8px;
+  font-size: 12px;
+}
+
+.smart-lookup-faq-item {
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s, 4px);
+  padding: 6px 8px;
+  margin: 4px 0;
+  cursor: pointer;
+}
+
+.smart-lookup-faq-item summary {
+  font-weight: 600;
+  color: var(--text-normal);
+}
+
+.smart-lookup-faq-answer {
+  margin: 4px 0 0 14px;
+  color: var(--text-muted);
+}
+
+.smart-lookup-study-action-row,
+.smart-lookup-cornell-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+/* AI Explainer Box */
+.smart-lookup-ai-box {
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: var(--background-secondary);
+  border-radius: var(--radius-s, 6px);
+  border: 1px solid var(--background-modifier-border);
+}
+
+.smart-lookup-ai-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.smart-lookup-ai-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--interactive-accent);
+}
+
+.smart-lookup-ai-icon svg {
+  width: 13px;
+  height: 13px;
+}
+
+.smart-lookup-ai-btn {
+  width: 100%;
+  font-size: 12px;
+  padding: 5px 8px;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s, 4px);
+  color: var(--text-normal);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.smart-lookup-ai-btn:hover {
+  background: var(--background-modifier-hover);
+}
+
+.smart-lookup-ai-summary {
+  margin: 0 0 4px 0;
+  font-size: 12px;
+}
+
+.smart-lookup-ai-row {
+  font-size: 12px;
+  margin-top: 3px;
+}
+
+/* Pinned Popover Footer (Always Visible) */
+.smart-lookup-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  padding: 8px 12px;
+  border-top: 1px solid var(--background-modifier-border);
+  background: var(--background-secondary);
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.smart-lookup-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  padding: 5px 10px;
+  border-radius: var(--radius-s, 4px);
+  cursor: pointer;
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-primary);
+  color: var(--text-normal);
+  transition: all 0.15s ease;
+}
+
+.smart-lookup-btn:hover {
+  background: var(--background-modifier-hover);
+}
+
+.smart-lookup-btn-primary {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border-color: var(--interactive-accent);
+}
+
+.smart-lookup-btn-primary:hover {
+  background: var(--interactive-accent-hover, var(--interactive-accent));
+}
+
+.smart-lookup-btn-deepdive {
+  background: #7c3aed;
+  color: #ffffff;
+  border-color: #6d28d9;
+}
+
+.smart-lookup-btn-deepdive:hover {
+  background: #6d28d9;
+}
+
+.smart-lookup-btn-anki {
+  background: #2563eb;
+  color: #ffffff;
+  border-color: #1d4ed8;
+}
+
+.smart-lookup-btn-anki:hover {
+  background: #1d4ed8;
+}
+
+.smart-lookup-btn-log {
+  background: #059669;
+  color: #ffffff;
+  border-color: #047857;
+}
+
+.smart-lookup-btn-log:hover {
+  background: #047857;
+}
+
+.smart-lookup-btn-icon svg {
+  width: 13px;
+  height: 13px;
+}
+
+/* Status Bar & Cursor */
+.smart-lookup-status-bar {
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.smart-lookup-status-bar:hover {
+  color: var(--interactive-accent);
+}
+
+/* Insert Format Dropdown Menu (Always on top) */
+.smart-lookup-insert-menu {
+  z-index: 3500000 !important;
+  position: fixed;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m, 8px);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45);
+  padding: 4px;
+  width: 220px;
+  animation: smartLookupFadeIn 0.12s ease-out;
+}
+
+.smart-lookup-menu-item {
+  padding: 6px 10px;
+  border-radius: var(--radius-s, 4px);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.smart-lookup-menu-item:hover {
+  background: var(--background-modifier-hover);
+}
+
+.smart-lookup-menu-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-normal);
+}
+
+.smart-lookup-menu-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: var(--font-monospace);
+  margin-top: 1px;
+}
+
+/* Animations */
+@keyframes smartLookupFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes smartLookupPopIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* In-Vault Web Search & Article Reader Modal */
+.smart-lookup-web-reader-modal {
+  width: 80vw;
+  max-width: 900px;
+  height: 85vh;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--background-primary);
+  border-radius: var(--radius-l, 12px);
+  overflow: hidden;
+}
+
+.smart-lookup-web-search-header {
+  padding: 16px 20px;
+  background: var(--background-secondary);
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.smart-lookup-web-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.smart-lookup-web-title-row h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text-normal);
+}
+
+.smart-lookup-web-icon svg {
+  width: 18px;
+  height: 18px;
+  color: var(--interactive-accent);
+}
+
+.smart-lookup-web-input-row {
+  display: flex;
+  gap: 10px;
+}
+
+.smart-lookup-web-search-input {
+  flex: 1;
+  padding: 8px 14px;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s, 6px);
+  font-size: 14px;
+  color: var(--text-normal);
+}
+
+.smart-lookup-web-search-input:focus {
+  border-color: var(--interactive-accent);
+}
+
+.smart-lookup-web-main-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px 22px;
+}
+
+.smart-lookup-web-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 60px 0;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.smart-lookup-web-empty {
+  text-align: center;
+  padding: 50px 20px;
+  color: var(--text-muted);
+  font-size: 14px;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+/* Results List */
+.smart-lookup-web-results-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.smart-lookup-web-result-card {
+  padding: 14px 16px;
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m, 8px);
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.smart-lookup-web-result-card:hover {
+  border-color: var(--interactive-accent);
+}
+
+.smart-lookup-web-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.smart-lookup-web-card-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--interactive-accent);
+}
+
+.smart-lookup-web-source-badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.smart-lookup-web-card-snippet {
+  margin: 0 0 10px 0;
+  font-size: 13px;
+  color: var(--text-normal);
+  line-height: 1.45;
+}
+
+.smart-lookup-web-card-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* Article View */
+.smart-lookup-web-article-view {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.smart-lookup-web-article-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--background-modifier-border);
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.smart-lookup-web-article-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.smart-lookup-web-article-heading {
+  margin: 0 0 6px 0;
+  font-size: 22px;
+  color: var(--text-normal);
+}
+
+.smart-lookup-web-article-meta {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+.smart-lookup-web-lead-img-wrap {
+  margin: 12px 0 18px 0;
+  max-height: 320px;
+  border-radius: var(--radius-m, 8px);
+  overflow: hidden;
+  border: 1px solid var(--background-modifier-border);
+}
+
+.smart-lookup-web-lead-img-wrap img {
+  width: 100%;
+  height: 100%;
+  max-height: 320px;
+  object-fit: cover;
+}
+
+.smart-lookup-web-text-body {
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--text-normal);
+}
+
+.smart-lookup-web-text-body p {
+  margin-bottom: 14px;
+}
+
+.smart-lookup-web-text-body h2 {
+  margin-top: 20px;
+  margin-bottom: 10px;
+  font-size: 18px;
+  border-bottom: 1px solid var(--background-modifier-border);
+  padding-bottom: 4px;
+}
+
+.smart-lookup-web-text-body h3 {
+  margin-top: 16px;
+  margin-bottom: 8px;
+  font-size: 15px;
+}
+
+.smart-lookup-web-text-body blockquote {
+  border-left: 3px solid var(--interactive-accent);
+  padding-left: 12px;
+  margin: 12px 0;
+  color: var(--text-muted);
+}
+
+/* In-Vault YouTube Video Tutorial Modal */
+.smart-lookup-youtube-modal {
+  width: 82vw;
+  max-width: 950px;
+  height: 86vh;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--background-primary);
+  border-radius: var(--radius-l, 12px);
+  overflow: hidden;
+}
+
+.smart-lookup-yt-header {
+  padding: 16px 20px;
+  background: var(--background-secondary);
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.smart-lookup-yt-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.smart-lookup-yt-title-row h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text-normal);
+}
+
+.smart-lookup-yt-icon svg {
+  width: 18px;
+  height: 18px;
+  color: #ef4444;
+}
+
+.smart-lookup-yt-search-row {
+  display: flex;
+  gap: 10px;
+}
+
+.smart-lookup-yt-search-input {
+  flex: 1;
+  padding: 8px 14px;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s, 6px);
+  font-size: 14px;
+  color: var(--text-normal);
+}
+
+.smart-lookup-yt-search-input:focus {
+  border-color: var(--interactive-accent);
+}
+
+.smart-lookup-yt-main-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.smart-lookup-yt-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 60px 0;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.smart-lookup-yt-empty {
+  text-align: center;
+  padding: 50px 20px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+/* Active Player Section */
+.smart-lookup-yt-player-box {
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m, 10px);
+  overflow: hidden;
+}
+
+.smart-lookup-yt-iframe-wrap {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+  height: 0;
+  background: #000;
+}
+
+.smart-lookup-yt-iframe-wrap iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.smart-lookup-yt-player-footer {
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.smart-lookup-yt-player-title {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-normal);
+}
+
+.smart-lookup-yt-player-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.smart-lookup-yt-player-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* Video Grid */
+.smart-lookup-yt-grid-title h4 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.smart-lookup-yt-video-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+}
+
+.smart-lookup-yt-card {
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m, 8px);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.smart-lookup-yt-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--interactive-accent);
+}
+
+.smart-lookup-yt-card.is-active {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.25);
+}
+
+.smart-lookup-yt-thumb-wrap {
+  position: relative;
+  width: 100%;
+  height: 120px;
+  background: #0f172a;
+}
+
+.smart-lookup-yt-thumb-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.smart-lookup-yt-duration-badge {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  background: rgba(0, 0, 0, 0.82);
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+.smart-lookup-yt-card-info {
+  padding: 10px 12px;
+}
+
+.smart-lookup-yt-card-title {
+  margin: 0 0 4px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-normal);
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.smart-lookup-yt-card-channel {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* Active Recall Review Modal */
+.smart-lookup-review-modal {
+  width: 70vw;
+  max-width: 680px;
+  height: 75vh;
+  max-height: 580px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--background-primary);
+  border-radius: var(--radius-l, 12px);
+  overflow: hidden;
+}
+
+.smart-lookup-review-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: var(--background-secondary);
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.smart-lookup-review-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.smart-lookup-review-title-wrap h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text-normal);
+}
+
+.smart-lookup-review-icon svg {
+  width: 18px;
+  height: 18px;
+  color: var(--interactive-accent);
+}
+
+.smart-lookup-review-badge {
+  font-size: 12px;
+  padding: 3px 10px;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 12px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.smart-lookup-review-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.smart-lookup-review-empty {
+  text-align: center;
+  max-width: 440px;
+}
+
+.smart-lookup-party-icon svg {
+  width: 36px;
+  height: 36px;
+  color: #f59e0b;
+  margin-bottom: 12px;
+}
+
+.smart-lookup-review-card {
+  width: 100%;
+  max-width: 580px;
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m, 10px);
+  padding: 22px 24px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: smartLookupFadeIn 0.15s ease-out;
+}
+
+.smart-lookup-review-topic-tag {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--interactive-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.smart-lookup-review-question {
+  margin: 0;
+  font-size: 18px;
+  color: var(--text-normal);
+  line-height: 1.4;
+}
+
+.smart-lookup-review-answer-box {
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s, 6px);
+  padding: 14px 16px;
+  animation: smartLookupFadeIn 0.2s ease-out;
+}
+
+.smart-lookup-review-answer {
+  margin: 6px 0 0 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--text-normal);
+}
+
+.smart-lookup-review-summary-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 8px;
+  font-style: italic;
+}
+
+.smart-lookup-reveal-btn {
+  width: 100%;
+  padding: 12px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.smart-lookup-review-actions {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.smart-lookup-btn-rating {
+  flex: 1;
+  padding: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: var(--radius-s, 6px);
+}
+
+.smart-lookup-btn-hard {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.smart-lookup-btn-hard:hover {
+  background: rgba(239, 68, 68, 0.22);
+}
+
+.smart-lookup-btn-good {
+  background: rgba(34, 197, 94, 0.12);
+  color: #22c55e;
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.smart-lookup-btn-good:hover {
+  background: rgba(34, 197, 94, 0.22);
+}
+
+.smart-lookup-btn-easy {
+  background: rgba(59, 130, 246, 0.12);
+  color: #3b82f6;
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.smart-lookup-btn-easy:hover {
+  background: rgba(59, 130, 246, 0.22);
+}
+
+.smart-lookup-btn-csv {
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--text-normal);
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+.smart-lookup-btn-csv:hover {
+  background: rgba(16, 185, 129, 0.22);
+  border-color: #10b981;
+}
+
+/* Feynman Technique Complexity Switcher */
+.smart-lookup-feynman-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.smart-lookup-feynman-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.smart-lookup-feynman-pill {
+  font-size: 11px;
+  padding: 2px 7px;
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 12px;
+  color: var(--text-normal);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.smart-lookup-feynman-pill:hover {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border-color: var(--interactive-accent);
+}
+
+/* Compare & Quiz Action Buttons */
+.smart-lookup-btn-compare {
+  background: rgba(14, 165, 233, 0.12);
+  color: var(--text-normal);
+  border-color: rgba(14, 165, 233, 0.35);
+}
+
+.smart-lookup-btn-compare:hover {
+  background: rgba(14, 165, 233, 0.22);
+  border-color: #0ea5e9;
+}
+
+.smart-lookup-btn-quiz {
+  background: rgba(245, 158, 11, 0.12);
+  color: var(--text-normal);
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+.smart-lookup-btn-quiz:hover {
+  background: rgba(245, 158, 11, 0.22);
+  border-color: #f59e0b;
+}
+
+/* In-Vault Backlinks & Mentions */
+.smart-lookup-vault-mentions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 6px 12px;
+  margin-top: 8px;
+  background: var(--background-secondary);
+  border-radius: var(--radius-s, 4px);
+  border: 1px dashed var(--background-modifier-border);
+  font-size: 11px;
+}
+
+.smart-lookup-mention-icon svg {
+  width: 12px;
+  height: 12px;
+  color: var(--interactive-accent);
+}
+
+.smart-lookup-mention-label {
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.smart-lookup-mention-chip {
+  color: var(--interactive-accent);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.smart-lookup-mention-chip:hover {
+  color: var(--interactive-accent-hover, var(--interactive-accent));
+}
+
+/* Voice Dictation Mic Active State */
+.smart-lookup-mic-listening {
+  color: #ef4444 !important;
+  animation: smartLookupPulse 1s infinite alternate;
+}
+
+@keyframes smartLookupPulse {
+  0% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(239, 68, 68, 0.4)); }
+  100% { transform: scale(1.15); filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.9)); }
+}
+
+/* Method of Loci / Memory Palace Box */
+.smart-lookup-palace-box {
+  background: rgba(168, 85, 247, 0.08);
+  border: 1px dashed rgba(168, 85, 247, 0.35);
+  border-radius: var(--radius-s, 6px);
+  padding: 8px 12px;
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-normal);
+}
+
+.smart-lookup-palace-box strong {
+  color: #a855f7;
+}
+
+/* Daily Retention Streak Badge */
+.smart-lookup-streak-badge {
+  background: rgba(249, 115, 22, 0.12);
+  color: #f97316;
+  border: 1px solid rgba(249, 115, 22, 0.35);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.smart-lookup-interleaved-badge {
+  background: rgba(139, 92, 246, 0.12);
+  color: #8b5cf6;
+  border: 1px solid rgba(139, 92, 246, 0.35);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Modals: Compare, Paragraph, Voice */
+.smart-lookup-compare-modal,
+.smart-lookup-paragraph-modal,
+.smart-lookup-voice-modal {
+  padding: 22px 26px !important;
+  max-width: 680px !important;
+  width: 90vw !important;
+  box-sizing: border-box !important;
+  overflow: visible !important;
+}
+
+.smart-lookup-paragraph-modal .modal-content {
+  padding: 0 !important;
+  overflow-x: hidden !important;
+}
+
+.smart-lookup-compare-header,
+.smart-lookup-paragraph-header,
+.smart-lookup-voice-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.smart-lookup-compare-header h2,
+.smart-lookup-paragraph-header h2,
+.smart-lookup-voice-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.smart-lookup-compare-input,
+.smart-lookup-voice-input {
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 14px;
+  border-radius: var(--radius-m, 8px);
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-secondary);
+  color: var(--text-normal);
+  margin-bottom: 12px;
+}
+
+.smart-lookup-compare-input:focus,
+.smart-lookup-voice-input:focus {
+  border-color: var(--interactive-accent);
+  outline: none;
+}
+
+.smart-lookup-para-title-card {
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m, 8px);
+  padding: 12px 16px;
+  margin-bottom: 12px;
+}
+
+.smart-lookup-para-title-card h3 {
+  margin: 0 0 6px 0;
+  font-size: 16px;
+}
+
+.smart-lookup-para-takeaway {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.smart-lookup-para-bullets,
+.smart-lookup-para-explain {
+  background: var(--background-secondary-alt, var(--background-secondary));
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s, 6px);
+  padding: 10px 14px;
+  margin-bottom: 10px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.smart-lookup-para-bullets ul {
+  margin: 6px 0 0 16px;
+  padding: 0;
+}
+
+.smart-lookup-para-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.smart-lookup-tag-chip {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.smart-lookup-paragraph-scroll-body {
+  max-height: 55vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 6px;
+  margin-bottom: 10px;
+}
+
+.smart-lookup-paragraph-scroll-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.smart-lookup-paragraph-scroll-body::-webkit-scrollbar-thumb {
+  background: var(--background-modifier-border);
+  border-radius: 3px;
+}
+
+.smart-lookup-paragraph-actions,
+.smart-lookup-compare-btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--background-modifier-border);
+}
+
+.smart-lookup-voice-mic-icon.is-pulsing svg {
+  color: #ef4444;
+  animation: smartLookupPulse 1s infinite alternate;
+}
+
+/* ==========================================================
+   🧮 Wolfram|Alpha Computational Styles
+   ========================================================== */
+.smart-lookup-wolfram-box {
+  margin-top: 12px;
+  padding: 12px;
+  background-color: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m, 8px);
+  border-left: 4px solid #f97316;
+}
+
+.smart-lookup-wolfram-solution {
+  font-size: 15px;
+  color: var(--text-normal);
+  background: var(--background-primary);
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin: 8px 0;
+  font-family: var(--font-monospace);
+}
+
+.smart-lookup-wolfram-steps {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.smart-lookup-wolfram-steps ol {
+  margin: 6px 0;
+  padding-left: 20px;
+}
+
+/* ==========================================================
+   💬 Interactive Socratic AI Chat Modal
+   ========================================================== */
+.smart-lookup-chat-modal {
+  max-width: 640px !important;
+  width: 90vw !important;
+  display: flex;
+  flex-direction: column;
+}
+
+.smart-lookup-chat-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.smart-lookup-chat-chip {
+  background-color: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  color: var(--text-muted);
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.smart-lookup-chat-chip:hover {
+  background-color: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border-color: var(--interactive-accent);
+}
+
+.smart-lookup-chat-history {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 48vh;
+  min-height: 200px;
+  overflow-y: auto;
+  padding: 10px;
+  background-color: var(--background-secondary);
+  border-radius: var(--radius-m, 8px);
+  border: 1px solid var(--background-modifier-border);
+  margin-bottom: 12px;
+}
+
+.smart-lookup-chat-msg {
+  padding: 10px 14px;
+  border-radius: var(--radius-m, 8px);
+  max-width: 88%;
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+.smart-lookup-chat-msg-user {
+  align-self: flex-end;
+  background-color: var(--interactive-accent);
+  color: var(--text-on-accent);
+}
+
+.smart-lookup-chat-msg-assistant {
+  align-self: flex-start;
+  background-color: var(--background-primary);
+  color: var(--text-normal);
+  border: 1px solid var(--background-modifier-border);
+}
+
+.smart-lookup-chat-msg-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  opacity: 0.8;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.smart-lookup-chat-author-icon {
+  display: inline-flex;
+  align-items: center;
+}
+
+.smart-lookup-chat-author-icon svg {
+  width: 12px;
+  height: 12px;
+}
+
+.smart-lookup-chat-msg-content {
+  white-space: pre-wrap;
+}
+
+.smart-lookup-chat-msg-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px dashed var(--background-modifier-border);
+}
+
+.smart-lookup-chat-input-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.smart-lookup-chat-textarea {
+  flex: 1;
+  min-height: 52px;
+  max-height: 120px;
+  resize: vertical;
+  padding: 8px 10px;
+  border-radius: var(--radius-s, 4px);
+  font-size: 13px;
+}
+
+/* ==========================================================
+   🎬 YouTube Video Summary Modal & Chapters
+   ========================================================== */
+.smart-lookup-youtube-summary-modal {
+  max-width: 680px !important;
+  width: 90vw !important;
+}
+
+.smart-lookup-chapter-row {
+  padding: 4px 0;
+  font-size: 13px;
+  line-height: 1.4;
+  border-bottom: 1px dashed var(--background-modifier-border);
+}
+
+.smart-lookup-chapter-time {
+  font-family: var(--font-monospace);
+  color: #3b82f6;
+  font-weight: bold;
+}
+
+/* ==========================================================
+   📄 PDF & Document Reader & Note Studio
+   ========================================================== */
+.smart-lookup-pdf-modal {
+  max-width: 780px !important;
+  width: 92vw !important;
+  display: flex;
+  flex-direction: column;
+}
+
+.smart-lookup-pdf-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 12px;
+  background-color: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m, 8px);
+  margin: 10px 0;
+}
+
+.smart-lookup-pdf-nav-group,
+.smart-lookup-pdf-action-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.smart-lookup-pdf-page-indicator {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding: 0 4px;
+}
+
+.smart-lookup-pdf-viewer-body {
+  max-height: 55vh;
+  min-height: 250px;
+  overflow-y: auto;
+  padding: 12px;
+  background-color: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m, 8px);
+}
+
+.smart-lookup-pdf-page-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.smart-lookup-pdf-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--background-modifier-border);
+  padding-bottom: 6px;
+}
+
+.smart-lookup-pdf-doc-badge {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+
+.smart-lookup-pdf-text-content {
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: var(--text-normal);
+  white-space: pre-wrap;
+  user-select: text;
+  padding: 4px 0;
+}
+
+/* ==========================================================
+   🌟 Unified Smart Study & Research Studio
+   ========================================================== */
+.smart-lookup-studio-modal {
+  max-width: 860px !important;
+  width: 94vw !important;
+  display: flex;
+  flex-direction: column;
+}
+
+.smart-lookup-studio-tab-bar {
+  display: flex;
+  gap: 6px;
+  border-bottom: 2px solid var(--background-modifier-border);
+  padding-bottom: 6px;
+  margin-bottom: 12px;
+  overflow-x: auto;
+}
+
+.smart-lookup-studio-tab-btn {
+  background: none;
+  border: none;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  padding: 6px 12px;
+  border-radius: var(--radius-s, 4px);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.smart-lookup-studio-tab-btn:hover {
+  background-color: var(--background-modifier-hover);
+  color: var(--text-normal);
+}
+
+.smart-lookup-studio-tab-btn.is-active {
+  background-color: var(--interactive-accent);
+  color: var(--text-on-accent);
+  font-weight: 600;
+}
+
+.smart-lookup-studio-content-body {
+  min-height: 380px;
+}
+
+.smart-lookup-pdf-dropzone-bar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.smart-lookup-yt-studio-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-top: 12px;
+}
+
+@media (max-width: 700px) {
+  .smart-lookup-yt-studio-split {
+    grid-template-columns: 1fr;
+  }
+}
+
+.smart-lookup-yt-player-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.smart-lookup-yt-studio-iframe {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-m, 8px);
+  border: 1px solid var(--background-modifier-border);
+}
+
+.smart-lookup-clickable-chapter {
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 4px;
+  transition: background 0.15s ease;
+}
+
+.smart-lookup-clickable-chapter:hover {
+  background-color: var(--background-modifier-hover);
+}
+
+
+
+
+
