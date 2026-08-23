@@ -264,26 +264,11 @@ export default class SmartLookupPlugin extends Plugin {
         onAddToAnki: async (entry: DictionaryEntry, translation?: string, image?: ImageResult | null, context?: string, targetDeck?: string) => {
           if (!this.settings.enableAnki) return;
           const deckName = targetDeck || this.settings.ankiDeckName;
-          const front = `<b>${entry.word}</b>${entry.phonetic ? ` [<i>${entry.phonetic}</i>]` : ""}`;
-          let back = "";
-          if (entry.meanings && entry.meanings.length > 0) {
-            const m = entry.meanings[0];
-            back += `<i>(${m.partOfSpeech})</i> ${m.definitions[0]?.definition || ""}<br>`;
-          }
-          if (translation) {
-            back += `<br><b>Translation:</b> ${translation}<br>`;
-          }
-          if (context) {
-            back += `<br><b>Context:</b> <i>"${context}"</i><br>`;
-          }
-          if (image) {
-            back += `<br><img src="${image.url}" alt="${image.title}" style="max-height:160px; border-radius:4px;" />`;
-          }
-          await this.ankiClient.createCard({
+          await this.ankiClient.createCard(entry, {
             deckName,
-            front,
-            back,
-            tags: ["smart-lookup", "obsidian", entry.meanings[0]?.partOfSpeech || "vocabulary"],
+            translation,
+            image,
+            contextSentence: context,
           });
         },
       },

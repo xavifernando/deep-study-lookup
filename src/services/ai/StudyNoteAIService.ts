@@ -14,31 +14,6 @@ export interface ResearchDossier {
   limitationsAndBottlenecks: string;
 }
 
-export class StudyNoteAIService {
-  private settings: PluginSettings;
-  private throttle = new RequestThrottle(250);
-
-  constructor(settings: PluginSettings) {
-    this.settings = settings;
-  }
-
-  updateSettings(settings: PluginSettings): void {
-    this.settings = settings;
-  }
-
-  /**
-   * Conducts verified internet/Wikipedia research for the topic before generating study notes
-   */
-  async conductDeepResearch(term: string, contextSentence?: string): Promise<ResearchDossier> {
-    const cleanTerm = term.trim().replace(/^["']|["']$/g, "");
-    let summaryText = "";
-    let sourceUrl = `https://en.wikipedia.org/wiki/${encodeURIComponent(cleanTerm.replace(/\s+/g, "_"))}`;
-    const termsToTry = [cleanTerm];
-
-    if (cleanTerm.includes(" and ")) {
-      termsToTry.push(...cleanTerm.split(" and ").map((t) => t.trim()));
-    }
-
 interface WikiSummaryResponse {
   extract?: string;
   content_urls?: {
@@ -69,6 +44,31 @@ interface OpenAIStudyResponse {
     };
   }>;
 }
+
+export class StudyNoteAIService {
+  private settings: PluginSettings;
+  private throttle = new RequestThrottle(250);
+
+  constructor(settings: PluginSettings) {
+    this.settings = settings;
+  }
+
+  updateSettings(settings: PluginSettings): void {
+    this.settings = settings;
+  }
+
+  /**
+   * Conducts verified internet/Wikipedia research for the topic before generating study notes
+   */
+  async conductDeepResearch(term: string, contextSentence?: string): Promise<ResearchDossier> {
+    const cleanTerm = term.trim().replace(/^["']|["']$/g, "");
+    let summaryText = "";
+    let sourceUrl = `https://en.wikipedia.org/wiki/${encodeURIComponent(cleanTerm.replace(/\s+/g, "_"))}`;
+    const termsToTry = [cleanTerm];
+
+    if (cleanTerm.includes(" and ")) {
+      termsToTry.push(...cleanTerm.split(" and ").map((t) => t.trim()));
+    }
 
     for (const t of termsToTry) {
       try {

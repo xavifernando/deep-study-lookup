@@ -1,4 +1,4 @@
-import { App, Editor, Notice, Platform, setCssStyles, setIcon } from "obsidian";
+import { App, Editor, Notice, Platform, setIcon } from "obsidian";
 import {
   AIExplanationResult,
   DictionaryEntry,
@@ -1017,7 +1017,7 @@ export class LookupPopover {
       top = rect.bottom + 6;
     }
 
-    setCssStyles(menu, {
+    menu.setCssStyles({
       position: "fixed",
       left: `${Math.round(left)}px`,
       top: `${Math.round(top)}px`,
@@ -1075,7 +1075,7 @@ export class LookupPopover {
         newLeft = Math.max(10, Math.min(maxLeft, newLeft));
         newTop = Math.max(10, Math.min(maxTop, newTop));
 
-        setCssStyles(this.el, {
+        this.el.setCssStyles({
           left: `${Math.round(newLeft)}px`,
           top: `${Math.round(newTop)}px`,
         });

@@ -1,4 +1,3 @@
-import { setCssStyles } from "obsidian";
 import { ImageResult } from "../types";
 
 export class ImageHoverCard {
@@ -17,11 +16,11 @@ export class ImageHoverCard {
     });
 
     this.el.addEventListener("mouseleave", () => {
-      this.hide();
+      this.scheduleHide(150);
     });
   }
 
-  show(image: ImageResult, targetRect: DOMRect): void {
+  show(image: ImageResult, targetRect: { top: number; bottom: number; left: number; width: number }): void {
     if (this.hideTimeout) {
       window.clearTimeout(this.hideTimeout);
       this.hideTimeout = null;
@@ -65,7 +64,7 @@ export class ImageHoverCard {
     }
     if (left < 16) left = 16;
 
-    setCssStyles(this.el, {
+    this.el.setCssStyles({
       left: `${Math.round(left)}px`,
       top: `${Math.round(top)}px`,
     });

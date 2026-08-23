@@ -2,6 +2,20 @@ import { requestUrl } from "obsidian";
 import { AIExplanationResult, PluginSettings } from "../../types";
 import { AIExplanationOptions, IAIProvider } from "./IAIProvider";
 
+interface GeminiPart {
+  text?: string;
+}
+
+interface GeminiCandidate {
+  content?: {
+    parts?: GeminiPart[];
+  };
+}
+
+interface GeminiResponse {
+  candidates?: GeminiCandidate[];
+}
+
 export class GeminiProvider implements IAIProvider {
   name = "Google Gemini";
   private settings: PluginSettings;

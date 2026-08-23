@@ -28,7 +28,7 @@ __export(main_exports, {
   default: () => SmartLookupPlugin
 });
 module.exports = __toCommonJS(main_exports);
-var import_obsidian29 = require("obsidian");
+var import_obsidian27 = require("obsidian");
 
 // src/services/ai/AIManager.ts
 var import_obsidian3 = require("obsidian");
@@ -470,12 +470,7 @@ var RequestThrottle = class {
   async wait() {
     const elapsed = Date.now() - this.lastRequestTime;
     if (elapsed < this.minIntervalMs) {
-      const delay = this.minIntervalMs - elapsed;
-      if (typeof window !== "undefined" && typeof window.setTimeout === "function") {
-        await new Promise((r) => window.setTimeout(r, delay));
-      } else {
-        await new Promise((r) => setTimeout(r, delay));
-      }
+      await new Promise((r) => window.setTimeout(r, this.minIntervalMs - elapsed));
     }
     this.lastRequestTime = Date.now();
   }
@@ -1964,11 +1959,11 @@ ${studyPack.webSourceUrl ? `- \u{1F30D} **External Reference**: [Wikipedia / Res
     nextDate.setDate(nextDate.getDate() + interval);
     const nextDueStr = nextDate.toISOString().split("T")[0];
     await this.app.fileManager.processFrontMatter(file, (fm) => {
-      fm.review_due = nextDueStr;
-      fm.interval_days = interval;
-      fm.reps = reps;
-      fm.ease_factor = parseFloat(ease.toFixed(2));
-      fm.last_reviewed = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
+      fm["review_due"] = nextDueStr;
+      fm["interval_days"] = interval;
+      fm["reps"] = reps;
+      fm["ease_factor"] = parseFloat(ease.toFixed(2));
+      fm["last_reviewed"] = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
     });
     new import_obsidian13.Notice(`Recorded! Next review in ${interval} day${interval === 1 ? "" : "s"} (${nextDueStr}).`);
   }
@@ -2303,7 +2298,7 @@ var VaultMentionService = class {
     const results = [];
     const files = this.app.vault.getMarkdownFiles();
     const regex = new RegExp(`\\b${cleanTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i");
-    const configDir = this.app.vault.configDir || ".obsidian";
+    const configDir = this.app.vault.configDir;
     for (const file of files) {
       if (currentFilePath && file.path === currentFilePath)
         continue;
@@ -3248,10 +3243,9 @@ var ActiveRecallReviewModal = class extends import_obsidian17.Modal {
 };
 
 // src/ui/FloatingPill.ts
-var import_obsidian19 = require("obsidian");
+var import_obsidian18 = require("obsidian");
 
 // src/utils/dom.ts
-var import_obsidian18 = require("obsidian");
 function getSelectionCoordinates() {
   const selection = window.getSelection();
   if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
@@ -3284,7 +3278,7 @@ function positionElementNear(element, anchorRect, options = {}) {
   let top;
   if (placeAbove) {
     maxAllowedHeight = Math.max(200, Math.min(520, spaceAbove));
-    (0, import_obsidian18.setCssStyles)(element, { maxHeight: `${Math.round(maxAllowedHeight)}px` });
+    element.setCssStyles({ maxHeight: `${Math.round(maxAllowedHeight)}px` });
     const actualHeight = element.offsetHeight || maxAllowedHeight;
     top = anchorRect.top - actualHeight - offset;
     if (top < 12)
@@ -3299,7 +3293,7 @@ function positionElementNear(element, anchorRect, options = {}) {
   if (left + elWidth > viewportWidth - 16) {
     left = viewportWidth - elWidth - 16;
   }
-  (0, import_obsidian18.setCssStyles)(element, {
+  element.setCssStyles({
     position: "fixed",
     maxHeight: `${Math.round(maxAllowedHeight)}px`,
     left: `${Math.round(left)}px`,
@@ -3317,7 +3311,7 @@ var FloatingPill = class {
     this.el = document.body.createDiv({ cls: "smart-lookup-floating-pill is-hidden" });
     this.el.setAttribute("role", "toolbar");
     this.el.setAttribute("aria-label", "Smart Lookup Quick Actions");
-    if (import_obsidian19.Platform.isMobile) {
+    if (import_obsidian18.Platform.isMobile) {
       this.el.addClass("smart-lookup-mobile-pill");
     }
   }
@@ -3372,7 +3366,7 @@ var FloatingPill = class {
     btn.setAttribute("role", "button");
     btn.setAttribute("aria-label", label);
     const iconSpan = btn.createSpan({ cls: "smart-lookup-pill-icon" });
-    (0, import_obsidian19.setIcon)(iconSpan, iconName);
+    (0, import_obsidian18.setIcon)(iconSpan, iconName);
     btn.createSpan({ text: label });
     const handleAction = (e) => {
       e.preventDefault();
@@ -3412,10 +3406,9 @@ var FloatingPill = class {
 };
 
 // src/ui/LookupPopover.ts
-var import_obsidian23 = require("obsidian");
+var import_obsidian21 = require("obsidian");
 
 // src/ui/ImageHoverCard.ts
-var import_obsidian20 = require("obsidian");
 var ImageHoverCard = class {
   constructor() {
     this.currentImage = null;
@@ -3428,7 +3421,7 @@ var ImageHoverCard = class {
       }
     });
     this.el.addEventListener("mouseleave", () => {
-      this.hide();
+      this.scheduleHide(150);
     });
   }
   show(image, targetRect) {
@@ -3467,7 +3460,7 @@ var ImageHoverCard = class {
     }
     if (left < 16)
       left = 16;
-    (0, import_obsidian20.setCssStyles)(this.el, {
+    this.el.setCssStyles({
       left: `${Math.round(left)}px`,
       top: `${Math.round(top)}px`
     });
@@ -3491,7 +3484,7 @@ var ImageHoverCard = class {
 };
 
 // src/ui/ImageLightboxModal.ts
-var import_obsidian21 = require("obsidian");
+var import_obsidian19 = require("obsidian");
 var ImageLightboxModal = class {
   constructor() {
     this.currentImage = null;
@@ -3515,7 +3508,7 @@ var ImageLightboxModal = class {
     const header = this.cardEl.createDiv({ cls: "smart-lookup-lightbox-header" });
     header.createEl("h3", { text: image.title || "Image Preview", cls: "smart-lookup-lightbox-title" });
     const closeBtn = header.createEl("button", { cls: "smart-lookup-icon-btn smart-lookup-lightbox-close" });
-    (0, import_obsidian21.setIcon)(closeBtn, "x");
+    (0, import_obsidian19.setIcon)(closeBtn, "x");
     closeBtn.onclick = () => this.hide();
     const imgWrap = this.cardEl.createDiv({ cls: "smart-lookup-lightbox-img-wrap" });
     imgWrap.createEl("img", {
@@ -3535,11 +3528,11 @@ var ImageLightboxModal = class {
       cls: "smart-lookup-btn smart-lookup-btn-primary",
       text: "Insert into Note"
     });
-    (0, import_obsidian21.setIcon)(insertBtn.createSpan({ cls: "smart-lookup-btn-icon" }), "file-plus");
+    (0, import_obsidian19.setIcon)(insertBtn.createSpan({ cls: "smart-lookup-btn-icon" }), "file-plus");
     insertBtn.onclick = () => {
       if (this.onInsertCallback && this.currentImage) {
         this.onInsertCallback(this.currentImage);
-        new import_obsidian21.Notice(`Inserted image "${this.currentImage.title}"`);
+        new import_obsidian19.Notice(`Inserted image "${this.currentImage.title}"`);
         this.hide();
       }
     };
@@ -3547,12 +3540,12 @@ var ImageLightboxModal = class {
       cls: "smart-lookup-btn",
       text: "Copy Markdown"
     });
-    (0, import_obsidian21.setIcon)(copyBtn.createSpan({ cls: "smart-lookup-btn-icon" }), "copy");
+    (0, import_obsidian19.setIcon)(copyBtn.createSpan({ cls: "smart-lookup-btn-icon" }), "copy");
     copyBtn.onclick = async () => {
       if (this.currentImage) {
         const md = `![${this.currentImage.title}](${this.currentImage.url})`;
         await navigator.clipboard.writeText(md);
-        new import_obsidian21.Notice("Image markdown copied to clipboard!");
+        new import_obsidian19.Notice("Image markdown copied to clipboard!");
       }
     };
     this.overlayEl.removeClass("is-hidden");
@@ -3568,8 +3561,8 @@ var ImageLightboxModal = class {
 };
 
 // src/ui/AnkiDeckModal.ts
-var import_obsidian22 = require("obsidian");
-var AnkiDeckModal = class extends import_obsidian22.Modal {
+var import_obsidian20 = require("obsidian");
+var AnkiDeckModal = class extends import_obsidian20.Modal {
   constructor(app, ankiClient, currentDeck, onSelectDeck) {
     super(app);
     this.decks = [];
@@ -3584,7 +3577,7 @@ var AnkiDeckModal = class extends import_obsidian22.Modal {
     const header = contentEl.createDiv({ cls: "smart-lookup-paragraph-header" });
     const titleWrap = header.createDiv({ cls: "smart-lookup-review-title-wrap" });
     const iconSpan = titleWrap.createSpan({ cls: "smart-lookup-paragraph-icon" });
-    (0, import_obsidian22.setIcon)(iconSpan, "layers");
+    (0, import_obsidian20.setIcon)(iconSpan, "layers");
     titleWrap.createEl("h2", { text: "Choose or Create Anki Deck" });
     const loadingEl = contentEl.createDiv({ cls: "smart-lookup-loading-box", text: "Fetching Anki decks..." });
     try {
@@ -3600,7 +3593,7 @@ var AnkiDeckModal = class extends import_obsidian22.Modal {
     const selectCard = body.createDiv({ cls: "smart-lookup-para-bullets" });
     selectCard.createEl("h4", { text: "\u{1F5C2}\uFE0F Target Anki Deck" });
     let selectedVal = this.decks.includes(this.currentDeck) ? this.currentDeck : this.decks.length > 0 ? this.decks[0] : "Default";
-    const selectSetting = new import_obsidian22.Setting(selectCard).setName("Select Deck").setDesc("Choose active target deck");
+    const selectSetting = new import_obsidian20.Setting(selectCard).setName("Select Deck").setDesc("Choose active target deck");
     selectSetting.addDropdown((dropdown) => {
       this.decks.forEach((deck) => {
         dropdown.addOption(deck, deck);
@@ -3613,7 +3606,7 @@ var AnkiDeckModal = class extends import_obsidian22.Modal {
     selectSetting.addButton(
       (btn) => btn.setButtonText("Select & Save").setCta().onClick(() => {
         this.onSelectDeck(selectedVal);
-        new import_obsidian22.Notice(`Target Anki deck set to "${selectedVal}"!`);
+        new import_obsidian20.Notice(`Target Anki deck set to "${selectedVal}"!`);
         this.close();
       })
     );
@@ -3643,7 +3636,7 @@ var AnkiDeckModal = class extends import_obsidian22.Modal {
         });
         pickBtn.onclick = () => {
           this.onSelectDeck(subDeck);
-          new import_obsidian22.Notice(`Selected "${subDeck}"!`);
+          new import_obsidian20.Notice(`Selected "${subDeck}"!`);
           this.close();
         };
       });
@@ -3651,7 +3644,7 @@ var AnkiDeckModal = class extends import_obsidian22.Modal {
     const createCard = body.createDiv({ cls: "smart-lookup-para-title-card" });
     createCard.createEl("h4", { text: "\u2795 Create Brand New Deck" });
     let newDeckInput = "";
-    new import_obsidian22.Setting(createCard).setName("New Deck Name").setDesc("Create and immediately switch active target to this deck").addText(
+    new import_obsidian20.Setting(createCard).setName("New Deck Name").setDesc("Create and immediately switch active target to this deck").addText(
       (text) => text.setPlaceholder("e.g. Science::Physics or French Vocab").onChange((val) => {
         newDeckInput = val;
       })
@@ -3659,18 +3652,18 @@ var AnkiDeckModal = class extends import_obsidian22.Modal {
       (btn) => btn.setButtonText("Create & Select").onClick(async () => {
         const name = newDeckInput.trim();
         if (!name) {
-          new import_obsidian22.Notice("Please enter a valid deck name.");
+          new import_obsidian20.Notice("Please enter a valid deck name.");
           return;
         }
         btn.setDisabled(true);
         btn.setButtonText("Creating...");
         try {
           await this.ankiClient.createDeck(name);
-          new import_obsidian22.Notice(`Created Anki deck "${name}"!`);
+          new import_obsidian20.Notice(`Created Anki deck "${name}"!`);
           this.onSelectDeck(name);
           this.close();
         } catch {
-          new import_obsidian22.Notice(`Created locally and switched target to "${name}"`);
+          new import_obsidian20.Notice(`Created locally and switched target to "${name}"`);
           this.onSelectDeck(name);
           this.close();
         }
@@ -3725,7 +3718,7 @@ var LookupPopover = class {
     this.el = document.body.createDiv({ cls: "smart-lookup-popover is-hidden" });
     this.el.setAttribute("role", "dialog");
     this.el.setAttribute("aria-label", "Smart Lookup Definition");
-    if (import_obsidian23.Platform.isMobile) {
+    if (import_obsidian21.Platform.isMobile) {
       this.el.addClass("smart-lookup-mobile-popover");
     }
     document.addEventListener("mousedown", this.boundDocClick);
@@ -3801,11 +3794,11 @@ var LookupPopover = class {
     this.initDragHandling(header);
     header.createEl("h3", { text: word, cls: "smart-lookup-word-title" });
     const closeBtn = header.createEl("button", { cls: "smart-lookup-icon-btn smart-lookup-close-btn" });
-    (0, import_obsidian23.setIcon)(closeBtn, "x");
+    (0, import_obsidian21.setIcon)(closeBtn, "x");
     closeBtn.onclick = () => this.hide();
     const loadingDiv = this.el.createDiv({ cls: "smart-lookup-loading" });
     const spinner = loadingDiv.createSpan({ cls: "smart-lookup-spinner" });
-    (0, import_obsidian23.setIcon)(spinner, "loader");
+    (0, import_obsidian21.setIcon)(spinner, "loader");
     loadingDiv.createSpan({ text: "Searching definition & visuals...", cls: "smart-lookup-loading-text" });
     positionElementNear(this.el, anchorRect, { offset: 8, preferBelow: true });
   }
@@ -3846,13 +3839,13 @@ var LookupPopover = class {
     this.initDragHandling(header);
     const titleWrap = header.createDiv({ cls: "smart-lookup-title-wrap" });
     const dragGrip = titleWrap.createSpan({ cls: "smart-lookup-drag-handle", attr: { title: "Drag to move" } });
-    (0, import_obsidian23.setIcon)(dragGrip, "grip-vertical");
+    (0, import_obsidian21.setIcon)(dragGrip, "grip-vertical");
     if (this.history.length > 1) {
       const backBtn = titleWrap.createEl("button", {
         cls: "smart-lookup-icon-btn smart-lookup-back-btn",
         attr: { title: "Back to previous word" }
       });
-      (0, import_obsidian23.setIcon)(backBtn, "arrow-left");
+      (0, import_obsidian21.setIcon)(backBtn, "arrow-left");
       backBtn.onclick = () => {
         this.history.pop();
         const prev = this.history.pop();
@@ -3877,13 +3870,13 @@ var LookupPopover = class {
       cls: "smart-lookup-icon-btn",
       attr: { title: "Listen (Spacebar)" }
     });
-    (0, import_obsidian23.setIcon)(audioBtn, "volume-2");
+    (0, import_obsidian21.setIcon)(audioBtn, "volume-2");
     audioBtn.onclick = () => this.playAudio();
     const closeBtn = actionsWrap.createEl("button", {
       cls: "smart-lookup-icon-btn smart-lookup-close-btn",
       attr: { title: "Close (Esc)" }
     });
-    (0, import_obsidian23.setIcon)(closeBtn, "x");
+    (0, import_obsidian21.setIcon)(closeBtn, "x");
     closeBtn.onclick = () => this.hide();
   }
   renderActiveTabContent(body, entry, images) {
@@ -3974,7 +3967,7 @@ var LookupPopover = class {
     const row = container.createDiv({ cls: "smart-lookup-research-ribbon" });
     const titleWrap = row.createDiv({ cls: "smart-lookup-ribbon-label" });
     const compIcon = titleWrap.createSpan({ cls: "smart-lookup-ribbon-compass" });
-    (0, import_obsidian23.setIcon)(compIcon, "globe");
+    (0, import_obsidian21.setIcon)(compIcon, "globe");
     titleWrap.createSpan({ text: "Web Research:" });
     const iconsWrap = row.createDiv({ cls: "smart-lookup-ribbon-icons" });
     RESEARCH_ENGINES.forEach((eng) => {
@@ -3983,7 +3976,7 @@ var LookupPopover = class {
         attr: { title: `Search / Compute in ${eng.name}` }
       });
       const iconSpan = btn.createSpan({ cls: "smart-lookup-ribbon-icon-inner" });
-      (0, import_obsidian23.setIcon)(iconSpan, eng.icon);
+      (0, import_obsidian21.setIcon)(iconSpan, eng.icon);
       btn.onclick = () => {
         if (eng.id === "wolfram") {
           if (this.callbacks.onOpenWolframSolver) {
@@ -4013,7 +4006,7 @@ var LookupPopover = class {
     const header = wolframBox.createDiv({ cls: "smart-lookup-ai-header" });
     const titleSpan = header.createSpan({ cls: "smart-lookup-ai-title" });
     const calcIcon = titleSpan.createSpan({ cls: "smart-lookup-ai-icon" });
-    (0, import_obsidian23.setIcon)(calcIcon, "calculator");
+    (0, import_obsidian21.setIcon)(calcIcon, "calculator");
     titleSpan.createSpan({ text: `Wolfram|Alpha Problem Solver: ${query}` });
     const contentBox = wolframBox.createDiv({ cls: "smart-lookup-ai-content" });
     contentBox.createSpan({ text: "Computing solution and step-by-step breakdown...", cls: "smart-lookup-trans-loading" });
@@ -4035,18 +4028,18 @@ var LookupPopover = class {
           cls: "smart-lookup-btn smart-lookup-btn-primary",
           text: "\u{1F4E5} Insert in Note"
         });
-        (0, import_obsidian23.setIcon)(insertBtn.createSpan({ cls: "smart-lookup-btn-icon" }), "file-plus");
+        (0, import_obsidian21.setIcon)(insertBtn.createSpan({ cls: "smart-lookup-btn-icon" }), "file-plus");
         insertBtn.onclick = () => {
           if (this.callbacks.onInsertMarkdown) {
             this.callbacks.onInsertMarkdown(res.markdownFormatted, false);
-            new import_obsidian23.Notice("Inserted Wolfram solution into note!");
+            new import_obsidian21.Notice("Inserted Wolfram solution into note!");
           }
         };
         const studyBtn = actionRow.createEl("button", {
           cls: "smart-lookup-btn",
           text: "\u{1F4DA} Add to Study Note"
         });
-        (0, import_obsidian23.setIcon)(studyBtn.createSpan({ cls: "smart-lookup-btn-icon" }), "book-open");
+        (0, import_obsidian21.setIcon)(studyBtn.createSpan({ cls: "smart-lookup-btn-icon" }), "book-open");
         studyBtn.onclick = () => {
           if (this.callbacks.onAppendSummaryToNote) {
             this.callbacks.onAppendSummaryToNote(`
@@ -4056,7 +4049,7 @@ var LookupPopover = class {
 
 ${res.markdownFormatted}
 `);
-            new import_obsidian23.Notice("Added Wolfram solution to Study Note!");
+            new import_obsidian21.Notice("Added Wolfram solution to Study Note!");
           }
         };
         const webBtn = actionRow.createEl("button", {
@@ -4077,7 +4070,7 @@ ${res.markdownFormatted}
     const transHeader = transBox.createDiv({ cls: "smart-lookup-trans-header" });
     const titleSpan = transHeader.createSpan({ cls: "smart-lookup-trans-title" });
     const globeIcon = titleSpan.createSpan({ cls: "smart-lookup-trans-icon" });
-    (0, import_obsidian23.setIcon)(globeIcon, "languages");
+    (0, import_obsidian21.setIcon)(globeIcon, "languages");
     titleSpan.createSpan({ text: "Translate" });
     const select = transHeader.createEl("select", { cls: "smart-lookup-lang-select" });
     SUPPORTED_LANGUAGES.forEach((lang) => {
@@ -4103,7 +4096,7 @@ ${res.markdownFormatted}
             cls: "smart-lookup-icon-btn",
             attr: { title: "Listen to pronunciation in target language" }
           });
-          (0, import_obsidian23.setIcon)(audioBtn, "volume-2");
+          (0, import_obsidian21.setIcon)(audioBtn, "volume-2");
           audioBtn.onclick = () => {
             void AudioPlayer.playOrSpeak(res.translatedText, void 0, langCode);
           };
@@ -4111,10 +4104,10 @@ ${res.markdownFormatted}
             cls: "smart-lookup-icon-btn",
             attr: { title: "Copy translation" }
           });
-          (0, import_obsidian23.setIcon)(copyBtn, "copy");
+          (0, import_obsidian21.setIcon)(copyBtn, "copy");
           copyBtn.onclick = async () => {
             await navigator.clipboard.writeText(res.translatedText);
-            new import_obsidian23.Notice("Translation copied!");
+            new import_obsidian21.Notice("Translation copied!");
           };
         } else {
           transContent.createSpan({ text: "Could not translate.", cls: "smart-lookup-text-muted" });
@@ -4132,7 +4125,7 @@ ${res.markdownFormatted}
     const studyHeader = studyBox.createDiv({ cls: "smart-lookup-study-header" });
     const titleSpan = studyHeader.createSpan({ cls: "smart-lookup-study-title" });
     const bookIcon = titleSpan.createSpan({ cls: "smart-lookup-study-icon" });
-    (0, import_obsidian23.setIcon)(bookIcon, "book-open");
+    (0, import_obsidian21.setIcon)(bookIcon, "book-open");
     titleSpan.createSpan({ text: "Deep-Dive Study Note" });
     const contentDiv = studyBox.createDiv({ cls: "smart-lookup-study-content" });
     if (this.currentStudyPack) {
@@ -4160,7 +4153,7 @@ ${res.markdownFormatted}
       } catch (err) {
         genBtn.disabled = false;
         genBtn.setText("\u26A1 Generate Deep-Dive Synthesis");
-        new import_obsidian23.Notice(`Generation notice: ${err.message}`);
+        new import_obsidian21.Notice(`Generation notice: ${err.message}`);
       }
     };
   }
@@ -4178,7 +4171,7 @@ ${res.markdownFormatted}
       text: "\u{1F4D1} Create Study Note",
       attr: { title: `Creates a structured study note in "${this.settings.studyNotesFolder || "Study Notes"}/"` }
     });
-    (0, import_obsidian23.setIcon)(createNoteBtn.createSpan({ cls: "smart-lookup-btn-icon" }), "file-text");
+    (0, import_obsidian21.setIcon)(createNoteBtn.createSpan({ cls: "smart-lookup-btn-icon" }), "file-text");
     createNoteBtn.onclick = async () => {
       createNoteBtn.disabled = true;
       createNoteBtn.setText("Creating note...");
@@ -4191,12 +4184,12 @@ ${res.markdownFormatted}
           }
           createNoteBtn.disabled = false;
           createNoteBtn.setText("\u2713 Note Created");
-          new import_obsidian23.Notice(`Created Deep-Dive Study Note: ${studyPack.title}!`);
+          new import_obsidian21.Notice(`Created Deep-Dive Study Note: ${studyPack.title}!`);
         }
       } catch (err) {
         createNoteBtn.disabled = false;
         createNoteBtn.setText("\u{1F4D1} Create Study Note");
-        new import_obsidian23.Notice(`Error creating note: ${err.message}`);
+        new import_obsidian21.Notice(`Error creating note: ${err.message}`);
       }
     };
     const createCanvasBtn = sumActionRow.createEl("button", {
@@ -4204,7 +4197,7 @@ ${res.markdownFormatted}
       text: "\u{1F5C2}\uFE0F Concept Canvas",
       attr: { title: "Generates an interactive visual Obsidian whiteboard Canvas" }
     });
-    (0, import_obsidian23.setIcon)(createCanvasBtn.createSpan({ cls: "smart-lookup-btn-icon" }), "layout-grid");
+    (0, import_obsidian21.setIcon)(createCanvasBtn.createSpan({ cls: "smart-lookup-btn-icon" }), "layout-grid");
     createCanvasBtn.onclick = async () => {
       createCanvasBtn.disabled = true;
       createCanvasBtn.setText("Generating Canvas...");
@@ -4217,19 +4210,19 @@ ${res.markdownFormatted}
           }
           createCanvasBtn.disabled = false;
           createCanvasBtn.setText("\u2713 Canvas Created");
-          new import_obsidian23.Notice(`Generated Visual Concept Canvas for "${studyPack.title}"!`);
+          new import_obsidian21.Notice(`Generated Visual Concept Canvas for "${studyPack.title}"!`);
         }
       } catch (err) {
         createCanvasBtn.disabled = false;
         createCanvasBtn.setText("\u{1F5C2}\uFE0F Concept Canvas");
-        new import_obsidian23.Notice(`Canvas Error: ${err.message}`);
+        new import_obsidian21.Notice(`Canvas Error: ${err.message}`);
       }
     };
     const appendBtn = sumActionRow.createEl("button", {
       cls: "smart-lookup-btn smart-lookup-btn-primary",
       text: "\u{1F4E5} Insert in Note"
     });
-    (0, import_obsidian23.setIcon)(appendBtn.createSpan({ cls: "smart-lookup-btn-icon" }), "arrow-down-to-line");
+    (0, import_obsidian21.setIcon)(appendBtn.createSpan({ cls: "smart-lookup-btn-icon" }), "arrow-down-to-line");
     appendBtn.onclick = () => {
       const heading = this.settings.studySummaryHeading || "## \u{1F4CC} Key Synthesis & Takeaways";
       const md = `
@@ -4241,7 +4234,7 @@ ${heading}
         this.callbacks.onAppendSummaryToNote(md);
       }
       appendBtn.setText("\u2713 Inserted");
-      new import_obsidian23.Notice("Summary inserted into note!");
+      new import_obsidian21.Notice("Summary inserted into note!");
     };
     if (studyPack.keyRules && studyPack.keyRules.length > 0) {
       const keyBlock = container.createDiv({ cls: "smart-lookup-para-bullets" });
@@ -4265,7 +4258,7 @@ ${heading}
     const aiHeader = aiBox.createDiv({ cls: "smart-lookup-ai-header" });
     const titleSpan = aiHeader.createSpan({ cls: "smart-lookup-ai-title" });
     const sparkle = titleSpan.createSpan({ cls: "smart-lookup-ai-icon" });
-    (0, import_obsidian23.setIcon)(sparkle, "sparkles");
+    (0, import_obsidian21.setIcon)(sparkle, "sparkles");
     titleSpan.createSpan({ text: "AI Context Explainer" });
     const tierWrap = aiHeader.createDiv({ cls: "smart-lookup-complexity-wrap" });
     const tiers = [
@@ -4357,7 +4350,7 @@ ${heading}
           attr: { title: `Save to Log (Hotkey: Ctrl+Shift+L)` }
         });
         const logIcon = logBtn.createSpan({ cls: "smart-lookup-btn-icon" });
-        (0, import_obsidian23.setIcon)(logIcon, "bookmark");
+        (0, import_obsidian21.setIcon)(logIcon, "bookmark");
         logBtn.createSpan({ text: "Log " });
         logBtn.createEl("kbd", { cls: "smart-lookup-key-badge", text: "Ctrl+Shift+L" });
         logBtn.onclick = async () => {
@@ -4370,12 +4363,12 @@ ${heading}
                 this.contextSentence
               );
               logBtn.setText("Saved \u2713");
-              new import_obsidian23.Notice(`Saved to ${this.settings.vocabLogPath || "Vocabulary Log.md"}`);
+              new import_obsidian21.Notice(`Saved to ${this.settings.vocabLogPath || "Vocabulary Log.md"}`);
             }
           } catch (err) {
             logBtn.disabled = false;
             logBtn.setText("Log");
-            new import_obsidian23.Notice(`Log error: ${err.message}`);
+            new import_obsidian21.Notice(`Log error: ${err.message}`);
           }
         };
       }
@@ -4387,7 +4380,7 @@ ${heading}
           attr: { title: `Add to Anki deck "${currentDeck}" (Hotkey: Ctrl+Shift+A)` }
         });
         const ankiIcon = ankiBtn.createSpan({ cls: "smart-lookup-btn-icon" });
-        (0, import_obsidian23.setIcon)(ankiIcon, "layers");
+        (0, import_obsidian21.setIcon)(ankiIcon, "layers");
         const ankiLabel = ankiBtn.createSpan({ text: `Anki (${currentDeck}) ` });
         ankiBtn.createEl("kbd", { cls: "smart-lookup-key-badge", text: "Ctrl+Shift+A" });
         ankiBtn.onclick = async () => {
@@ -4405,12 +4398,12 @@ ${heading}
                 targetDeck
               );
               ankiBtn.setText("Added \u2713");
-              new import_obsidian23.Notice(`Card added to Anki deck "${targetDeck}"!`);
+              new import_obsidian21.Notice(`Card added to Anki deck "${targetDeck}"!`);
             }
           } catch (err) {
             ankiBtn.disabled = false;
             ankiLabel.setText(`Anki (${currentDeck}) `);
-            new import_obsidian23.Notice(`Anki Notice: ${err.message}`);
+            new import_obsidian21.Notice(`Anki Notice: ${err.message}`);
           }
         };
         if (this.ankiClient) {
@@ -4418,7 +4411,7 @@ ${heading}
             cls: "smart-lookup-btn smart-lookup-btn-anki-picker",
             attr: { title: "Choose or Create Anki Deck" }
           });
-          (0, import_obsidian23.setIcon)(pickerBtn, "chevron-down");
+          (0, import_obsidian21.setIcon)(pickerBtn, "chevron-down");
           pickerBtn.onclick = (e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -4439,7 +4432,7 @@ ${heading}
       });
       insertBtn.createSpan({ text: "Insert " });
       insertBtn.createEl("kbd", { cls: "smart-lookup-key-badge", text: "Ctrl+Shift+I" });
-      (0, import_obsidian23.setIcon)(insertBtn.createSpan({ cls: "smart-lookup-btn-icon" }), "file-plus");
+      (0, import_obsidian21.setIcon)(insertBtn.createSpan({ cls: "smart-lookup-btn-icon" }), "file-plus");
       insertBtn.addEventListener("mousedown", (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -4454,11 +4447,11 @@ ${heading}
         attr: { title: "Copy definition" }
       });
       copyBtn.createSpan({ text: "Copy " });
-      (0, import_obsidian23.setIcon)(copyBtn.createSpan({ cls: "smart-lookup-btn-icon" }), "copy");
+      (0, import_obsidian21.setIcon)(copyBtn.createSpan({ cls: "smart-lookup-btn-icon" }), "copy");
       copyBtn.onclick = async () => {
         const md = formatDefinitionByStyle(entry, this.settings.defaultInsertFormat, this.settings.insertTemplate);
         await navigator.clipboard.writeText(md);
-        new import_obsidian23.Notice("Definition copied to clipboard!");
+        new import_obsidian21.Notice("Definition copied to clipboard!");
       };
     }
   }
@@ -4498,7 +4491,7 @@ ${heading}
     if (top < 16) {
       top = rect.bottom + 6;
     }
-    (0, import_obsidian23.setCssStyles)(menu, {
+    menu.setCssStyles({
       position: "fixed",
       left: `${Math.round(left)}px`,
       top: `${Math.round(top)}px`
@@ -4507,7 +4500,7 @@ ${heading}
   insertOrCopyMarkdown(markdown, successNotice, replaceSelection = false) {
     if (this.callbacks.onInsertMarkdown) {
       this.callbacks.onInsertMarkdown(markdown, replaceSelection);
-      new import_obsidian23.Notice(successNotice);
+      new import_obsidian21.Notice(successNotice);
     } else if (this.activeEditor) {
       if (replaceSelection && this.activeEditor.getSelection()) {
         this.activeEditor.replaceSelection(markdown);
@@ -4519,10 +4512,10 @@ ${markdown}
 
 `, cursor);
       }
-      new import_obsidian23.Notice(successNotice);
+      new import_obsidian21.Notice(successNotice);
     } else {
       void navigator.clipboard.writeText(markdown);
-      new import_obsidian23.Notice("Copied to clipboard!");
+      new import_obsidian21.Notice("Copied to clipboard!");
     }
   }
   initDragHandling(headerEl) {
@@ -4551,7 +4544,7 @@ ${markdown}
         const maxTop = window.innerHeight - this.el.offsetHeight - 10;
         newLeft = Math.max(10, Math.min(maxLeft, newLeft));
         newTop = Math.max(10, Math.min(maxTop, newTop));
-        (0, import_obsidian23.setCssStyles)(this.el, {
+        this.el.setCssStyles({
           left: `${Math.round(newLeft)}px`,
           top: `${Math.round(newTop)}px`
         });
@@ -4574,14 +4567,14 @@ ${markdown}
       if (mentions && mentions.length > 0) {
         const wrap = container.createDiv({ cls: "smart-lookup-vault-mentions" });
         const iconSpan = wrap.createSpan({ cls: "smart-lookup-mention-icon" });
-        (0, import_obsidian23.setIcon)(iconSpan, "link");
+        (0, import_obsidian21.setIcon)(iconSpan, "link");
         wrap.createSpan({ text: "Vault Mentions: ", cls: "smart-lookup-mention-label" });
         mentions.forEach((m, idx) => {
           const chip = wrap.createSpan({ text: m.basename, cls: "smart-lookup-mention-chip" });
           chip.onclick = () => {
             if (this.callbacks.onInsertMarkdown) {
               this.callbacks.onInsertMarkdown(`[[${m.basename}]]`, false);
-              new import_obsidian23.Notice(`Linked [[${m.basename}]] into active note!`);
+              new import_obsidian21.Notice(`Linked [[${m.basename}]] into active note!`);
             }
           };
           if (idx < mentions.length - 1) {
@@ -4613,8 +4606,8 @@ ${markdown}
 };
 
 // src/ui/ParagraphSummaryModal.ts
-var import_obsidian24 = require("obsidian");
-var ParagraphSummaryModal = class extends import_obsidian24.Modal {
+var import_obsidian22 = require("obsidian");
+var ParagraphSummaryModal = class extends import_obsidian22.Modal {
   constructor(app, paragraphService, rawText, callbacks, onCloseCallback) {
     super(app);
     this.paragraphService = paragraphService;
@@ -4629,7 +4622,7 @@ var ParagraphSummaryModal = class extends import_obsidian24.Modal {
     const header = contentEl.createDiv({ cls: "smart-lookup-paragraph-header" });
     const titleWrap = header.createDiv({ cls: "smart-lookup-review-title-wrap" });
     const iconSpan = titleWrap.createSpan({ cls: "smart-lookup-paragraph-icon" });
-    (0, import_obsidian24.setIcon)(iconSpan, "sparkles");
+    (0, import_obsidian22.setIcon)(iconSpan, "sparkles");
     titleWrap.createEl("h2", { text: "Paragraph Summary & Footnote" });
     this.containerEl.addEventListener("mousedown", (e) => {
       if (e.target === this.containerEl || e.target.classList.contains("modal-bg")) {
@@ -4669,12 +4662,12 @@ var ParagraphSummaryModal = class extends import_obsidian24.Modal {
         cls: "smart-lookup-btn smart-lookup-btn-primary",
         text: "\u{1F516} Insert Footnote"
       });
-      (0, import_obsidian24.setIcon)(footnoteBtn.createSpan({ cls: "smart-lookup-btn-icon" }), "link");
+      (0, import_obsidian22.setIcon)(footnoteBtn.createSpan({ cls: "smart-lookup-btn-icon" }), "link");
       footnoteBtn.onclick = () => {
         const summaryText = res.actionableTakeaway || res.summaryBulletPoints?.[0] || res.simplifiedExplanation;
         this.callbacks.onInsertFootnote(summaryText);
         footnoteBtn.setText("\u2713 Footnote Inserted");
-        new import_obsidian24.Notice("Inserted summary as numbered footnote!");
+        new import_obsidian22.Notice("Inserted summary as numbered footnote!");
       };
       if (this.callbacks.onInsertSummary) {
         const insertNoteBtn = btnRow.createEl("button", {
@@ -4702,7 +4695,7 @@ ${bullets}
 >
 > **Takeaway**: ${res.actionableTakeaway}`;
         await navigator.clipboard.writeText(fullMd);
-        new import_obsidian24.Notice("Copied summary to clipboard!");
+        new import_obsidian22.Notice("Copied summary to clipboard!");
       };
       const exitBtn = btnRow.createEl("button", {
         cls: "smart-lookup-btn",
@@ -4732,8 +4725,8 @@ ${bullets}
 };
 
 // src/ui/SettingsTab.ts
-var import_obsidian25 = require("obsidian");
-var SmartLookupSettingTab = class extends import_obsidian25.PluginSettingTab {
+var import_obsidian23 = require("obsidian");
+var SmartLookupSettingTab = class extends import_obsidian23.PluginSettingTab {
   constructor(app, plugin) {
     super(app, plugin);
     this.plugin = plugin;
@@ -4741,61 +4734,61 @@ var SmartLookupSettingTab = class extends import_obsidian25.PluginSettingTab {
   display() {
     const { containerEl } = this;
     containerEl.empty();
-    new import_obsidian25.Setting(containerEl).setName("Smart Visual, Translation & Anki Lookup").setHeading();
-    new import_obsidian25.Setting(containerEl).setName("Activation & Pronunciation").setHeading();
-    new import_obsidian25.Setting(containerEl).setName("Trigger Mode").setDesc("How lookup activates when text is selected in your notes").addDropdown(
+    new import_obsidian23.Setting(containerEl).setName("Smart Visual, Translation & Anki Lookup").setHeading();
+    new import_obsidian23.Setting(containerEl).setName("Activation & Pronunciation").setHeading();
+    new import_obsidian23.Setting(containerEl).setName("Trigger Mode").setDesc("How lookup activates when text is selected in your notes").addDropdown(
       (dropdown) => dropdown.addOption("selection_pill", "Floating Pill (Recommended)").addOption("auto_popup", "Instant Popover on selection").addOption("manual_only", "Manual Hotkey / Context Menu only").setValue(this.plugin.settings.triggerMode).onChange(async (val) => {
         this.plugin.settings.triggerMode = val;
         await this.plugin.saveSettings();
       })
     );
-    new import_obsidian25.Setting(containerEl).setName("Pronunciation Dialect / Accent").setDesc("Preferred English dialect for audio speech synthesis").addDropdown(
+    new import_obsidian23.Setting(containerEl).setName("Pronunciation Dialect / Accent").setDesc("Preferred English dialect for audio speech synthesis").addDropdown(
       (dropdown) => dropdown.addOption("us", "American (US \u{1F1FA}\u{1F1F8})").addOption("uk", "British (UK \u{1F1EC}\u{1F1E7})").addOption("au", "Australian (AU \u{1F1E6}\u{1F1FA})").setValue(this.plugin.settings.accentDialect).onChange(async (val) => {
         this.plugin.settings.accentDialect = val;
         await this.plugin.saveSettings();
       })
     );
-    new import_obsidian25.Setting(containerEl).setName("Auto-play Pronunciation").setDesc("Automatically play audio pronunciation when popup opens (if audio available)").addToggle(
+    new import_obsidian23.Setting(containerEl).setName("Auto-play Pronunciation").setDesc("Automatically play audio pronunciation when popup opens (if audio available)").addToggle(
       (toggle) => toggle.setValue(this.plugin.settings.autoPlayAudio).onChange(async (val) => {
         this.plugin.settings.autoPlayAudio = val;
         await this.plugin.saveSettings();
       })
     );
-    new import_obsidian25.Setting(containerEl).setName("Web Research Ribbon").setHeading();
-    new import_obsidian25.Setting(containerEl).setName("Enable Web Research Ribbon").setDesc("Displays a minimalist 1-click icon ribbon for Wolfram|Alpha, Perplexity, Wikipedia, ScienceDirect, PubMed, Scholar, YouTube, and Reddit.").addToggle(
+    new import_obsidian23.Setting(containerEl).setName("Web Research Ribbon").setHeading();
+    new import_obsidian23.Setting(containerEl).setName("Enable Web Research Ribbon").setDesc("Displays a minimalist 1-click icon ribbon for Wolfram|Alpha, Perplexity, Wikipedia, ScienceDirect, PubMed, Scholar, YouTube, and Reddit.").addToggle(
       (toggle) => toggle.setValue(this.plugin.settings.enableResearchBar).onChange(async (val) => {
         this.plugin.settings.enableResearchBar = val;
         await this.plugin.saveSettings();
       })
     );
-    new import_obsidian25.Setting(containerEl).setName("Wolfram|Alpha App ID (Optional)").setDesc("Enter your Wolfram|Alpha Full Results API AppID for expanded computation pods and steps (leave blank for automatic solver)").addText((text) => {
+    new import_obsidian23.Setting(containerEl).setName("Wolfram|Alpha App ID (Optional)").setDesc("Enter your Wolfram|Alpha Full Results API AppID for expanded computation pods and steps (leave blank for automatic solver)").addText((text) => {
       text.inputEl.type = "password";
       text.setPlaceholder("e.g. 26X8... (Optional)").setValue(this.plugin.settings.wolframAppId || "").onChange(async (val) => {
         this.plugin.settings.wolframAppId = val.trim();
         await this.plugin.saveSettings();
       });
     });
-    new import_obsidian25.Setting(containerEl).setName("Deep-Dive Study Notes & Spaced Repetition").setHeading();
-    new import_obsidian25.Setting(containerEl).setName("Study Notes Vault Folder").setDesc("Folder where dedicated Deep-Dive study notes are stored").addText(
+    new import_obsidian23.Setting(containerEl).setName("Deep-Dive Study Notes & Spaced Repetition").setHeading();
+    new import_obsidian23.Setting(containerEl).setName("Study Notes Vault Folder").setDesc("Folder where dedicated Deep-Dive study notes are stored").addText(
       (text) => text.setPlaceholder("Study Notes").setValue(this.plugin.settings.studyNotesFolder).onChange(async (val) => {
         this.plugin.settings.studyNotesFolder = val.trim();
         await this.plugin.saveSettings();
       })
     );
-    new import_obsidian25.Setting(containerEl).setName("Include Illustrations & Diagrams in Study Notes").setDesc("Automatically embeds concept illustrations and diagrams into generated study notes").addToggle(
+    new import_obsidian23.Setting(containerEl).setName("Include Illustrations & Diagrams in Study Notes").setDesc("Automatically embeds concept illustrations and diagrams into generated study notes").addToggle(
       (toggle) => toggle.setValue(this.plugin.settings.includeImagesInStudyNote).onChange(async (val) => {
         this.plugin.settings.includeImagesInStudyNote = val;
         await this.plugin.saveSettings();
       })
     );
-    new import_obsidian25.Setting(containerEl).setName("Enable Spaced Repetition Due Reminders").setDesc("Shows an Active Recall reminder notice when opening a note whose review is due").addToggle(
+    new import_obsidian23.Setting(containerEl).setName("Enable Spaced Repetition Due Reminders").setDesc("Shows an Active Recall reminder notice when opening a note whose review is due").addToggle(
       (toggle) => toggle.setValue(this.plugin.settings.enableSRS).onChange(async (val) => {
         this.plugin.settings.enableSRS = val;
         await this.plugin.saveSettings();
       })
     );
-    new import_obsidian25.Setting(containerEl).setName("Vocabulary Vault & Status Bar").setHeading();
-    new import_obsidian25.Setting(containerEl).setName("Enable Vocabulary Logging").setDesc("Enables logging discovered words to a dedicated markdown vault note").addToggle(
+    new import_obsidian23.Setting(containerEl).setName("Vocabulary Vault & Status Bar").setHeading();
+    new import_obsidian23.Setting(containerEl).setName("Enable Vocabulary Logging").setDesc("Enables logging discovered words to a dedicated markdown vault note").addToggle(
       (toggle) => toggle.setValue(this.plugin.settings.enableVocabLog).onChange(async (val) => {
         this.plugin.settings.enableVocabLog = val;
         await this.plugin.saveSettings();
@@ -4803,22 +4796,22 @@ var SmartLookupSettingTab = class extends import_obsidian25.PluginSettingTab {
       })
     );
     if (this.plugin.settings.enableVocabLog) {
-      new import_obsidian25.Setting(containerEl).setName("Vocabulary Log File Path").setDesc("Target note path in your vault").addText(
+      new import_obsidian23.Setting(containerEl).setName("Vocabulary Log File Path").setDesc("Target note path in your vault").addText(
         (text) => text.setPlaceholder("Vocabulary Log.md").setValue(this.plugin.settings.vocabLogPath).onChange(async (val) => {
           this.plugin.settings.vocabLogPath = val.trim();
           await this.plugin.saveSettings();
         })
       );
     }
-    new import_obsidian25.Setting(containerEl).setName("Show Daily Word Counter in Status Bar").setDesc("Displays '\u{1F4DA} X words logged today' in Obsidian's status bar").addToggle(
+    new import_obsidian23.Setting(containerEl).setName("Show Daily Word Counter in Status Bar").setDesc("Displays '\u{1F4DA} X words logged today' in Obsidian's status bar").addToggle(
       (toggle) => toggle.setValue(this.plugin.settings.enableStatusBar).onChange(async (val) => {
         this.plugin.settings.enableStatusBar = val;
         await this.plugin.saveSettings();
         await this.plugin.updateStatusBar();
       })
     );
-    new import_obsidian25.Setting(containerEl).setName("Multi-Language Translation").setHeading();
-    new import_obsidian25.Setting(containerEl).setName("Enable Translation").setDesc("Show instant translation bar inside the lookup card").addToggle(
+    new import_obsidian23.Setting(containerEl).setName("Multi-Language Translation").setHeading();
+    new import_obsidian23.Setting(containerEl).setName("Enable Translation").setDesc("Show instant translation bar inside the lookup card").addToggle(
       (toggle) => toggle.setValue(this.plugin.settings.enableTranslation).onChange(async (val) => {
         this.plugin.settings.enableTranslation = val;
         await this.plugin.saveSettings();
@@ -4826,7 +4819,7 @@ var SmartLookupSettingTab = class extends import_obsidian25.PluginSettingTab {
       })
     );
     if (this.plugin.settings.enableTranslation) {
-      new import_obsidian25.Setting(containerEl).setName("Default Target Language").setDesc("Language to translate terms into automatically").addDropdown((dropdown) => {
+      new import_obsidian23.Setting(containerEl).setName("Default Target Language").setDesc("Language to translate terms into automatically").addDropdown((dropdown) => {
         SUPPORTED_LANGUAGES.forEach((lang) => {
           dropdown.addOption(lang.code, lang.name);
         });
@@ -4837,8 +4830,8 @@ var SmartLookupSettingTab = class extends import_obsidian25.PluginSettingTab {
         });
       });
     }
-    new import_obsidian25.Setting(containerEl).setName("Anki Flashcards Integration").setHeading();
-    new import_obsidian25.Setting(containerEl).setName("Enable Anki Sync").setDesc("Enables 1-click vocabulary flashcard creation via AnkiConnect").addToggle(
+    new import_obsidian23.Setting(containerEl).setName("Anki Flashcards Integration").setHeading();
+    new import_obsidian23.Setting(containerEl).setName("Enable Anki Sync").setDesc("Enables 1-click vocabulary flashcard creation via AnkiConnect").addToggle(
       (toggle) => toggle.setValue(this.plugin.settings.enableAnki).onChange(async (val) => {
         this.plugin.settings.enableAnki = val;
         await this.plugin.saveSettings();
@@ -4846,7 +4839,7 @@ var SmartLookupSettingTab = class extends import_obsidian25.PluginSettingTab {
       })
     );
     if (this.plugin.settings.enableAnki) {
-      new import_obsidian25.Setting(containerEl).setName("Target Anki Deck").setDesc("Target deck where cards will be saved").addText(
+      new import_obsidian23.Setting(containerEl).setName("Target Anki Deck").setDesc("Target deck where cards will be saved").addText(
         (text) => text.setPlaceholder("e.g. Obsidian Vocabulary").setValue(this.plugin.settings.ankiDeckName).onChange(async (val) => {
           this.plugin.settings.ankiDeckName = val.trim();
           await this.plugin.saveSettings();
@@ -4858,13 +4851,13 @@ var SmartLookupSettingTab = class extends import_obsidian25.PluginSettingTab {
           try {
             const decks = await this.plugin.ankiClient.getDeckNames();
             if (decks.length > 0) {
-              new import_obsidian25.Notice(`Connected to Anki! Available Decks:
+              new import_obsidian23.Notice(`Connected to Anki! Available Decks:
 ${decks.join(", ")}`);
             } else {
-              new import_obsidian25.Notice("Connected to Anki, but no decks found.");
+              new import_obsidian23.Notice("Connected to Anki, but no decks found.");
             }
           } catch (err) {
-            new import_obsidian25.Notice(`Connection Notice: ${err.message}`);
+            new import_obsidian23.Notice(`Connection Notice: ${err.message}`);
           } finally {
             btn.setDisabled(false);
             btn.setButtonText("Fetch Decks");
@@ -4872,7 +4865,7 @@ ${decks.join(", ")}`);
         })
       );
       let newDeckNameInput = "";
-      new import_obsidian25.Setting(containerEl).setName("Create New Anki Deck").setDesc("Create a new deck directly in Anki and set it as active target").addText(
+      new import_obsidian23.Setting(containerEl).setName("Create New Anki Deck").setDesc("Create a new deck directly in Anki and set it as active target").addText(
         (text) => text.setPlaceholder("e.g. Medicine::Cardiology").onChange((val) => {
           newDeckNameInput = val;
         })
@@ -4880,7 +4873,7 @@ ${decks.join(", ")}`);
         (btn) => btn.setButtonText("Create Deck").setCta().onClick(async () => {
           const name = newDeckNameInput.trim();
           if (!name) {
-            new import_obsidian25.Notice("Please enter a valid deck name.");
+            new import_obsidian23.Notice("Please enter a valid deck name.");
             return;
           }
           btn.setDisabled(true);
@@ -4889,52 +4882,52 @@ ${decks.join(", ")}`);
             await this.plugin.ankiClient.createDeck(name);
             this.plugin.settings.ankiDeckName = name;
             await this.plugin.saveSettings();
-            new import_obsidian25.Notice(`Created and selected Anki deck "${name}"!`);
+            new import_obsidian23.Notice(`Created and selected Anki deck "${name}"!`);
             this.display();
           } catch (err) {
-            new import_obsidian25.Notice(`Could not create deck: ${err.message}`);
+            new import_obsidian23.Notice(`Could not create deck: ${err.message}`);
           } finally {
             btn.setDisabled(false);
             btn.setButtonText("Create Deck");
           }
         })
       );
-      new import_obsidian25.Setting(containerEl).setName("Create Cloze Deletion Cards").setDesc("Wraps selected word in {{c1::word}} inside the context sentence").addToggle(
+      new import_obsidian23.Setting(containerEl).setName("Create Cloze Deletion Cards").setDesc("Wraps selected word in {{c1::word}} inside the context sentence").addToggle(
         (toggle) => toggle.setValue(this.plugin.settings.ankiClozeFormat).onChange(async (val) => {
           this.plugin.settings.ankiClozeFormat = val;
           await this.plugin.saveSettings();
         })
       );
-      new import_obsidian25.Setting(containerEl).setName("Include Pronunciation Audio in Anki").setDesc("Attaches audio pronunciation files to the flashcard").addToggle(
+      new import_obsidian23.Setting(containerEl).setName("Include Pronunciation Audio in Anki").setDesc("Attaches audio pronunciation files to the flashcard").addToggle(
         (toggle) => toggle.setValue(this.plugin.settings.ankiIncludeAudio).onChange(async (val) => {
           this.plugin.settings.ankiIncludeAudio = val;
           await this.plugin.saveSettings();
         })
       );
-      new import_obsidian25.Setting(containerEl).setName("Include Visual Image in Anki").setDesc("Attaches the looked-up image illustration to the flashcard").addToggle(
+      new import_obsidian23.Setting(containerEl).setName("Include Visual Image in Anki").setDesc("Attaches the looked-up image illustration to the flashcard").addToggle(
         (toggle) => toggle.setValue(this.plugin.settings.ankiIncludeImage).onChange(async (val) => {
           this.plugin.settings.ankiIncludeImage = val;
           await this.plugin.saveSettings();
         })
       );
     }
-    new import_obsidian25.Setting(containerEl).setName("Note Insertion Formats").setHeading();
-    new import_obsidian25.Setting(containerEl).setName("Default Insert Format").setDesc("Format applied when clicking the Insert button").addDropdown(
+    new import_obsidian23.Setting(containerEl).setName("Note Insertion Formats").setHeading();
+    new import_obsidian23.Setting(containerEl).setName("Default Insert Format").setDesc("Format applied when clicking the Insert button").addDropdown(
       (dropdown) => dropdown.addOption("callout", "Callout Box (> [!info] Word)").addOption("tooltip_abbr", "Hover Tooltip (<abbr> tag popup)").addOption("footnote", "Markdown Footnote ([^word])").addOption("inline_bracket", "Inline Bracket (word [meaning])").addOption("quote_block", "Custom Blockquote").setValue(this.plugin.settings.defaultInsertFormat).onChange(async (val) => {
         this.plugin.settings.defaultInsertFormat = val;
         await this.plugin.saveSettings();
       })
     );
-    new import_obsidian25.Setting(containerEl).setName("Visuals & Hover Preview").setHeading();
-    new import_obsidian25.Setting(containerEl).setName("Enable Stock Image Search").setDesc("Search and display hoverable image previews for selected words").addToggle(
+    new import_obsidian23.Setting(containerEl).setName("Visuals & Hover Preview").setHeading();
+    new import_obsidian23.Setting(containerEl).setName("Enable Stock Image Search").setDesc("Search and display hoverable image previews for selected words").addToggle(
       (toggle) => toggle.setValue(this.plugin.settings.showImages).onChange(async (val) => {
         this.plugin.settings.showImages = val;
         await this.plugin.saveSettings();
         this.display();
       })
     );
-    new import_obsidian25.Setting(containerEl).setName("AI Context Explainer & Mnemonics (Optional)").setHeading();
-    new import_obsidian25.Setting(containerEl).setName("Enable AI Explanations").setDesc("Enable contextual AI explanations, simple ELI5 summaries, and memory mnemonics").addToggle(
+    new import_obsidian23.Setting(containerEl).setName("AI Context Explainer & Mnemonics (Optional)").setHeading();
+    new import_obsidian23.Setting(containerEl).setName("Enable AI Explanations").setDesc("Enable contextual AI explanations, simple ELI5 summaries, and memory mnemonics").addToggle(
       (toggle) => toggle.setValue(this.plugin.settings.enableAI).onChange(async (val) => {
         this.plugin.settings.enableAI = val;
         await this.plugin.saveSettings();
@@ -4942,7 +4935,7 @@ ${decks.join(", ")}`);
       })
     );
     if (this.plugin.settings.enableAI) {
-      new import_obsidian25.Setting(containerEl).setName("AI Engine / Provider").setDesc("Choose your AI provider").addDropdown(
+      new import_obsidian23.Setting(containerEl).setName("AI Engine / Provider").setDesc("Choose your AI provider").addDropdown(
         (dropdown) => dropdown.addOption("gemini", "Google Gemini (Free tier available)").addOption("openai", "OpenAI (ChatGPT)").addOption("anthropic", "Anthropic Claude").addOption("ollama", "Local Ollama (100% Offline & Free)").addOption("custom", "Custom OpenAI-compatible endpoint").setValue(this.plugin.settings.aiProvider).onChange(async (val) => {
           this.plugin.settings.aiProvider = val;
           const presets2 = MODEL_PRESETS[this.plugin.settings.aiProvider] || [];
@@ -4956,7 +4949,7 @@ ${decks.join(", ")}`);
       const presets = MODEL_PRESETS[this.plugin.settings.aiProvider] || [];
       const isPreset = presets.some((p) => p.id === this.plugin.settings.aiModel);
       const selectedModelValue = isPreset ? this.plugin.settings.aiModel : "custom";
-      new import_obsidian25.Setting(containerEl).setName("AI Model Selection").setDesc("Select the specific model version to use").addDropdown((dropdown) => {
+      new import_obsidian23.Setting(containerEl).setName("AI Model Selection").setDesc("Select the specific model version to use").addDropdown((dropdown) => {
         presets.forEach((p) => {
           dropdown.addOption(p.id, p.name);
         });
@@ -4970,7 +4963,7 @@ ${decks.join(", ")}`);
         });
       });
       if (selectedModelValue === "custom" || this.plugin.settings.aiProvider === "custom") {
-        new import_obsidian25.Setting(containerEl).setName("Custom Model Name").setDesc("Enter exact model ID (e.g., gemini-2.0-flash, gpt-4o, llama3.2:1b)").addText(
+        new import_obsidian23.Setting(containerEl).setName("Custom Model Name").setDesc("Enter exact model ID (e.g., gemini-2.0-flash, gpt-4o, llama3.2:1b)").addText(
           (text) => text.setPlaceholder("model-id").setValue(this.plugin.settings.aiModel).onChange(async (val) => {
             this.plugin.settings.aiModel = val.trim();
             await this.plugin.saveSettings();
@@ -4978,7 +4971,7 @@ ${decks.join(", ")}`);
         );
       }
       if (this.plugin.settings.aiProvider !== "ollama") {
-        new import_obsidian25.Setting(containerEl).setName("API Key").setDesc("API Key for the chosen provider").addText((text) => {
+        new import_obsidian23.Setting(containerEl).setName("API Key").setDesc("API Key for the chosen provider").addText((text) => {
           text.inputEl.type = "password";
           text.setPlaceholder("Paste API Key here...").setValue(this.plugin.settings.aiApiKey).onChange(async (val) => {
             this.plugin.settings.aiApiKey = val.trim();
@@ -4986,7 +4979,7 @@ ${decks.join(", ")}`);
           });
         });
       }
-      new import_obsidian25.Setting(containerEl).setName("AI Request Timeout (Seconds)").setDesc("Maximum seconds to wait for AI response before falling back to factual encyclopedia extracts (recommended: 30s for local Ollama / detailed JSON)").addSlider(
+      new import_obsidian23.Setting(containerEl).setName("AI Request Timeout (Seconds)").setDesc("Maximum seconds to wait for AI response before falling back to factual encyclopedia extracts (recommended: 30s for local Ollama / detailed JSON)").addSlider(
         (slider) => slider.setLimits(5, 60, 5).setValue(this.plugin.settings.aiTimeoutSeconds || 30).onChange(async (val) => {
           this.plugin.settings.aiTimeoutSeconds = val;
           await this.plugin.saveSettings();
@@ -4997,8 +4990,8 @@ ${decks.join(", ")}`);
 };
 
 // src/ui/WolframSolverModal.ts
-var import_obsidian26 = require("obsidian");
-var WolframSolverModal = class extends import_obsidian26.Modal {
+var import_obsidian24 = require("obsidian");
+var WolframSolverModal = class extends import_obsidian24.Modal {
   constructor(app, service, initialQuery, callbacks = {}) {
     super(app);
     this.currentResult = null;
@@ -5022,7 +5015,7 @@ var WolframSolverModal = class extends import_obsidian26.Modal {
     try {
       this.currentResult = await this.service.solve(query);
     } catch (err) {
-      new import_obsidian26.Notice(`Wolfram notice: ${err.message}`);
+      new import_obsidian24.Notice(`Wolfram notice: ${err.message}`);
     } finally {
       this.isLoading = false;
       this.render();
@@ -5034,7 +5027,7 @@ var WolframSolverModal = class extends import_obsidian26.Modal {
     const header = contentEl.createDiv({ cls: "smart-lookup-paragraph-header" });
     const titleWrap = header.createDiv({ cls: "smart-lookup-review-title-wrap" });
     const iconSpan = titleWrap.createSpan({ cls: "smart-lookup-paragraph-icon" });
-    (0, import_obsidian26.setIcon)(iconSpan, "calculator");
+    (0, import_obsidian24.setIcon)(iconSpan, "calculator");
     titleWrap.createEl("h2", { text: "\u{1F9EE} Wolfram|Alpha Computational Problem Solver" });
     const searchRow = header.createDiv({ cls: "smart-lookup-yt-search-row" });
     const input = searchRow.createEl("input", {
@@ -5047,7 +5040,7 @@ var WolframSolverModal = class extends import_obsidian26.Modal {
       text: "Solve Problem",
       cls: "smart-lookup-btn smart-lookup-btn-primary"
     });
-    (0, import_obsidian26.setIcon)(solveBtn.createSpan({ cls: "smart-lookup-btn-icon" }), "sparkles");
+    (0, import_obsidian24.setIcon)(solveBtn.createSpan({ cls: "smart-lookup-btn-icon" }), "sparkles");
     const triggerSolve = () => {
       const q = input.value.trim();
       if (q) {
@@ -5063,7 +5056,7 @@ var WolframSolverModal = class extends import_obsidian26.Modal {
     if (this.isLoading) {
       const loading = body.createDiv({ cls: "smart-lookup-loading-box" });
       const spinner = loading.createSpan({ cls: "smart-lookup-spinner" });
-      (0, import_obsidian26.setIcon)(spinner, "loader");
+      (0, import_obsidian24.setIcon)(spinner, "loader");
       loading.createSpan({ text: `Computing mathematical solution for "${this.currentQuery}"...` });
       return;
     }
@@ -5093,11 +5086,11 @@ var WolframSolverModal = class extends import_obsidian26.Modal {
       cls: "smart-lookup-btn smart-lookup-btn-primary",
       text: "\u{1F4E5} Insert into Active Note"
     });
-    (0, import_obsidian26.setIcon)(insertBtn.createSpan({ cls: "smart-lookup-btn-icon" }), "file-plus");
+    (0, import_obsidian24.setIcon)(insertBtn.createSpan({ cls: "smart-lookup-btn-icon" }), "file-plus");
     insertBtn.onclick = () => {
       if (this.callbacks.onInsertMarkdown && this.currentResult) {
         this.callbacks.onInsertMarkdown(this.currentResult.markdownFormatted);
-        new import_obsidian26.Notice("Inserted Wolfram solution into active note!");
+        new import_obsidian24.Notice("Inserted Wolfram solution into active note!");
         this.close();
       }
     };
@@ -5105,11 +5098,11 @@ var WolframSolverModal = class extends import_obsidian26.Modal {
       cls: "smart-lookup-btn",
       text: "\u{1F4DA} Add to Study Note"
     });
-    (0, import_obsidian26.setIcon)(studyBtn.createSpan({ cls: "smart-lookup-btn-icon" }), "book-open");
+    (0, import_obsidian24.setIcon)(studyBtn.createSpan({ cls: "smart-lookup-btn-icon" }), "book-open");
     studyBtn.onclick = async () => {
       if (this.callbacks.onAppendToStudyNote && this.currentResult) {
         await this.callbacks.onAppendToStudyNote(this.currentResult.query, this.currentResult.markdownFormatted);
-        new import_obsidian26.Notice("Added Wolfram solution to Study Note!");
+        new import_obsidian24.Notice("Added Wolfram solution to Study Note!");
       }
     };
     const webBtn = leftActions.createEl("button", {
@@ -5131,10 +5124,10 @@ var WolframSolverModal = class extends import_obsidian26.Modal {
 };
 
 // src/ui/YouTubePlayerModal.ts
-var import_obsidian28 = require("obsidian");
+var import_obsidian26 = require("obsidian");
 
 // src/services/video/YouTubeService.ts
-var import_obsidian27 = require("obsidian");
+var import_obsidian25 = require("obsidian");
 var YouTubeService = class {
   /**
    * Search for educational and tutorial videos on YouTube
@@ -5146,7 +5139,7 @@ var YouTubeService = class {
       return results;
     const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(cleanQuery + " tutorial explained")}`;
     try {
-      const res = await (0, import_obsidian27.requestUrl)({
+      const res = await (0, import_obsidian25.requestUrl)({
         url: searchUrl,
         method: "GET",
         headers: {
@@ -5192,7 +5185,7 @@ var YouTubeService = class {
     if (results.length === 0) {
       try {
         const invidiousUrl = `https://invidious.privacydev.net/api/v1/search?q=${encodeURIComponent(cleanQuery + " explained")}&type=video`;
-        const invRes = await (0, import_obsidian27.requestUrl)({ url: invidiousUrl, method: "GET" });
+        const invRes = await (0, import_obsidian25.requestUrl)({ url: invidiousUrl, method: "GET" });
         const invData = invRes.json;
         if (invRes.status === 200 && Array.isArray(invData)) {
           invData.slice(0, 8).forEach((v) => {
@@ -5216,7 +5209,7 @@ var YouTubeService = class {
 };
 
 // src/ui/YouTubePlayerModal.ts
-var YouTubePlayerModal = class extends import_obsidian28.Modal {
+var YouTubePlayerModal = class extends import_obsidian26.Modal {
   constructor(app, initialQuery, onInsertMarkdown) {
     super(app);
     this.videos = [];
@@ -5239,7 +5232,7 @@ var YouTubePlayerModal = class extends import_obsidian28.Modal {
     const header = contentEl.createDiv({ cls: "smart-lookup-yt-header" });
     const titleRow = header.createDiv({ cls: "smart-lookup-yt-title-row" });
     const ytIcon = titleRow.createSpan({ cls: "smart-lookup-yt-icon" });
-    (0, import_obsidian28.setIcon)(ytIcon, "video");
+    (0, import_obsidian26.setIcon)(ytIcon, "video");
     titleRow.createEl("h2", { text: "Video Tutorials & Explainers" });
     const searchRow = header.createDiv({ cls: "smart-lookup-yt-search-row" });
     const input = searchRow.createEl("input", {
@@ -5252,7 +5245,7 @@ var YouTubePlayerModal = class extends import_obsidian28.Modal {
       text: "Search Videos",
       cls: "smart-lookup-btn smart-lookup-btn-primary"
     });
-    (0, import_obsidian28.setIcon)(searchBtn.createSpan({ cls: "smart-lookup-btn-icon" }), "search");
+    (0, import_obsidian26.setIcon)(searchBtn.createSpan({ cls: "smart-lookup-btn-icon" }), "search");
     const triggerSearch = () => {
       const q = input.value.trim();
       if (q) {
@@ -5270,7 +5263,7 @@ var YouTubePlayerModal = class extends import_obsidian28.Modal {
     if (this.isLoading) {
       const loading = mainBody.createDiv({ cls: "smart-lookup-yt-loading" });
       const spinner = loading.createSpan({ cls: "smart-lookup-spinner" });
-      (0, import_obsidian28.setIcon)(spinner, "loader");
+      (0, import_obsidian26.setIcon)(spinner, "loader");
       loading.createSpan({ text: "Finding top tutorial videos and animations..." });
       return;
     }
@@ -5288,7 +5281,7 @@ var YouTubePlayerModal = class extends import_obsidian28.Modal {
         this.activeVideo = this.videos[0];
       }
     } catch (err) {
-      new import_obsidian28.Notice(`Video search notice: ${err.message}`);
+      new import_obsidian26.Notice(`Video search notice: ${err.message}`);
     } finally {
       this.isLoading = false;
       this.render();
@@ -5320,7 +5313,7 @@ var YouTubePlayerModal = class extends import_obsidian28.Modal {
       cls: "smart-lookup-btn smart-lookup-btn-primary",
       text: "Embed Video in Note"
     });
-    (0, import_obsidian28.setIcon)(embedBtn.createSpan({ cls: "smart-lookup-btn-icon" }), "file-plus");
+    (0, import_obsidian26.setIcon)(embedBtn.createSpan({ cls: "smart-lookup-btn-icon" }), "file-plus");
     embedBtn.onclick = () => {
       const md = `
 
@@ -5330,17 +5323,17 @@ var YouTubePlayerModal = class extends import_obsidian28.Modal {
 
 `;
       this.onInsertMarkdown(md);
-      new import_obsidian28.Notice(`Embedded "${video.title}" into active note!`);
+      new import_obsidian26.Notice(`Embedded "${video.title}" into active note!`);
     };
     const copyBtn = actionsWrap.createEl("button", {
       cls: "smart-lookup-btn",
       text: "Copy Video Link"
     });
-    (0, import_obsidian28.setIcon)(copyBtn.createSpan({ cls: "smart-lookup-btn-icon" }), "copy");
+    (0, import_obsidian26.setIcon)(copyBtn.createSpan({ cls: "smart-lookup-btn-icon" }), "copy");
     copyBtn.onclick = async () => {
       const url = `https://www.youtube.com/watch?v=${video.videoId}`;
       await navigator.clipboard.writeText(url);
-      new import_obsidian28.Notice("YouTube URL copied to clipboard!");
+      new import_obsidian26.Notice("YouTube URL copied to clipboard!");
     };
   }
   renderVideoGrid(container) {
@@ -5382,7 +5375,7 @@ var YouTubePlayerModal = class extends import_obsidian28.Modal {
 };
 
 // src/main.ts
-var SmartLookupPlugin = class extends import_obsidian29.Plugin {
+var SmartLookupPlugin = class extends import_obsidian27.Plugin {
   constructor() {
     super(...arguments);
     this.statusBarItem = null;
@@ -5397,10 +5390,10 @@ var SmartLookupPlugin = class extends import_obsidian29.Plugin {
       this.statusBarItem = this.addStatusBarItem();
       this.statusBarItem.addClass("smart-lookup-status-bar");
       this.statusBarItem.onclick = (evt) => {
-        const menu = new import_obsidian29.Menu();
+        const menu = new import_obsidian27.Menu();
         menu.addItem(
           (item) => item.setTitle("\u{1F3AC} Open Video Tutorials & Player").setIcon("video").onClick(() => {
-            const view = this.app.workspace.getActiveViewOfType(import_obsidian29.MarkdownView);
+            const view = this.app.workspace.getActiveViewOfType(import_obsidian27.MarkdownView);
             const selection = view?.editor.getSelection().trim() || window.getSelection()?.toString().trim() || "";
             this.openYouTubePlayer(selection);
           })
@@ -5413,10 +5406,10 @@ var SmartLookupPlugin = class extends import_obsidian29.Plugin {
         menu.addItem(
           (item) => item.setTitle("\u{1F4CA} Open Mastery & Retention Dashboard").setIcon("bar-chart-2").onClick(async () => {
             const md = this.srsService.generateRetentionDashboardMarkdown();
-            const path = (0, import_obsidian29.normalizePath)("\u{1F4CA} Learning Dashboard.md");
+            const path = (0, import_obsidian27.normalizePath)("\u{1F4CA} Learning Dashboard.md");
             const existing = this.app.vault.getAbstractFileByPath(path);
             let file;
-            if (existing instanceof import_obsidian29.TFile) {
+            if (existing instanceof import_obsidian27.TFile) {
               file = existing;
               await this.app.vault.modify(existing, md);
             } else {
@@ -5428,9 +5421,9 @@ var SmartLookupPlugin = class extends import_obsidian29.Plugin {
         menu.addItem(
           (item) => item.setTitle("\u{1F4DA} Open Vocabulary Log").setIcon("book-open").onClick(async () => {
             const rawPath = this.settings.vocabLogPath || "Vocabulary Log.md";
-            const filePath = (0, import_obsidian29.normalizePath)(rawPath);
+            const filePath = (0, import_obsidian27.normalizePath)(rawPath);
             const file = this.app.vault.getAbstractFileByPath(filePath);
-            if (file instanceof import_obsidian29.TFile) {
+            if (file instanceof import_obsidian27.TFile) {
               const leaf = this.app.workspace.getLeaf(false);
               await leaf.openFile(file);
             }
@@ -5503,7 +5496,7 @@ var SmartLookupPlugin = class extends import_obsidian29.Plugin {
             parentNoteTitle: parentTitle,
             contextSentence
           });
-          const activeMarkdownView = this.app.workspace.getActiveViewOfType(import_obsidian29.MarkdownView);
+          const activeMarkdownView = this.app.workspace.getActiveViewOfType(import_obsidian27.MarkdownView);
           if (activeMarkdownView) {
             const editor = activeMarkdownView.editor;
             if (editor.somethingSelected()) {
@@ -5538,7 +5531,7 @@ var SmartLookupPlugin = class extends import_obsidian29.Plugin {
           return this.vaultMentionService.findMentions(term);
         },
         onNavigateWord: (word) => {
-          const activeView = this.app.workspace.getActiveViewOfType(import_obsidian29.MarkdownView);
+          const activeView = this.app.workspace.getActiveViewOfType(import_obsidian27.MarkdownView);
           let editor = void 0;
           let bounds = { top: 150, left: 150, bottom: 170, right: 250, width: 100, height: 20 };
           if (activeView) {
@@ -5550,7 +5543,7 @@ var SmartLookupPlugin = class extends import_obsidian29.Plugin {
           void this.executeLookup(word, bounds, editor);
         },
         onInsertMarkdown: (markdown, replaceSelection = false) => {
-          const view = this.app.workspace.getActiveViewOfType(import_obsidian29.MarkdownView);
+          const view = this.app.workspace.getActiveViewOfType(import_obsidian27.MarkdownView);
           const editor = view?.editor;
           if (!editor)
             return;
@@ -5567,7 +5560,7 @@ ${markdown}
           }
         },
         onAppendSummaryToNote: (markdown) => {
-          const view = this.app.workspace.getActiveViewOfType(import_obsidian29.MarkdownView);
+          const view = this.app.workspace.getActiveViewOfType(import_obsidian27.MarkdownView);
           const editor = view?.editor;
           if (!editor)
             return;
@@ -5585,26 +5578,11 @@ ${markdown}
           if (!this.settings.enableAnki)
             return;
           const deckName = targetDeck || this.settings.ankiDeckName;
-          const front = `<b>${entry.word}</b>${entry.phonetic ? ` [<i>${entry.phonetic}</i>]` : ""}`;
-          let back = "";
-          if (entry.meanings && entry.meanings.length > 0) {
-            const m = entry.meanings[0];
-            back += `<i>(${m.partOfSpeech})</i> ${m.definitions[0]?.definition || ""}<br>`;
-          }
-          if (translation) {
-            back += `<br><b>Translation:</b> ${translation}<br>`;
-          }
-          if (context) {
-            back += `<br><b>Context:</b> <i>"${context}"</i><br>`;
-          }
-          if (image) {
-            back += `<br><img src="${image.url}" alt="${image.title}" style="max-height:160px; border-radius:4px;" />`;
-          }
-          await this.ankiClient.createCard({
+          await this.ankiClient.createCard(entry, {
             deckName,
-            front,
-            back,
-            tags: ["smart-lookup", "obsidian", entry.meanings[0]?.partOfSpeech || "vocabulary"]
+            translation,
+            image,
+            contextSentence: context
           });
         }
       },
@@ -5612,7 +5590,7 @@ ${markdown}
     );
     this.floatingPill = new FloatingPill({
       onLookup: (selectedText, bounds) => {
-        const mdView = this.app.workspace.getActiveViewOfType(import_obsidian29.MarkdownView);
+        const mdView = this.app.workspace.getActiveViewOfType(import_obsidian27.MarkdownView);
         const editor = mdView?.editor;
         void this.executeLookup(selectedText, bounds, editor);
       },
@@ -5620,7 +5598,7 @@ ${markdown}
         this.openWolframSolver(query);
       },
       onSummarize: (text) => {
-        const mdView = this.app.workspace.getActiveViewOfType(import_obsidian29.MarkdownView);
+        const mdView = this.app.workspace.getActiveViewOfType(import_obsidian27.MarkdownView);
         const editor = mdView?.editor;
         this.openParagraphModal(text, editor);
       },
@@ -5649,7 +5627,7 @@ ${markdown}
       id: "summarize-paragraph",
       name: "Summarize and explain selected text",
       checkCallback: (checking) => {
-        const mdView = this.app.workspace.getActiveViewOfType(import_obsidian29.MarkdownView);
+        const mdView = this.app.workspace.getActiveViewOfType(import_obsidian27.MarkdownView);
         let selected = "";
         let editor = void 0;
         if (mdView) {
@@ -5660,7 +5638,7 @@ ${markdown}
         }
         if (!selected) {
           if (!checking)
-            new import_obsidian29.Notice("Please select text to summarize.");
+            new import_obsidian27.Notice("Please select text to summarize.");
           return false;
         }
         if (checking)
@@ -5673,7 +5651,7 @@ ${markdown}
       id: "solve-wolfram",
       name: "Solve problem with WolframAlpha",
       checkCallback: (checking) => {
-        const mdView = this.app.workspace.getActiveViewOfType(import_obsidian29.MarkdownView);
+        const mdView = this.app.workspace.getActiveViewOfType(import_obsidian27.MarkdownView);
         let selected = "";
         if (mdView) {
           selected = mdView.editor.getSelection().trim();
@@ -5682,7 +5660,7 @@ ${markdown}
         }
         if (!selected) {
           if (!checking)
-            new import_obsidian29.Notice("Please select an equation or problem to solve.");
+            new import_obsidian27.Notice("Please select an equation or problem to solve.");
           return false;
         }
         if (checking)
@@ -5704,17 +5682,17 @@ ${markdown}
       name: "Generate spaced repetition retention dashboard",
       callback: async () => {
         const md = this.srsService.generateRetentionDashboardMarkdown();
-        const path = (0, import_obsidian29.normalizePath)("\u{1F4CA} Learning Dashboard.md");
+        const path = (0, import_obsidian27.normalizePath)("\u{1F4CA} Learning Dashboard.md");
         const existing = this.app.vault.getAbstractFileByPath(path);
         let file;
-        if (existing instanceof import_obsidian29.TFile) {
+        if (existing instanceof import_obsidian27.TFile) {
           file = existing;
           await this.app.vault.modify(existing, md);
         } else {
           file = await this.app.vault.create(path, md);
         }
         await this.app.workspace.getLeaf(false).openFile(file);
-        new import_obsidian29.Notice("Generated spaced repetition dashboard.");
+        new import_obsidian27.Notice("Generated spaced repetition dashboard.");
       }
     });
     this.addCommand({
@@ -5723,32 +5701,32 @@ ${markdown}
       editorCallback: async (editor) => {
         const text = editor.getValue();
         if (!text.trim()) {
-          new import_obsidian29.Notice("Active note is empty.");
+          new import_obsidian27.Notice("Active note is empty.");
           return;
         }
-        new import_obsidian29.Notice("Scanning note and generating glossary...");
+        new import_obsidian27.Notice("Scanning note and generating glossary...");
         const entries = await this.glossaryService.generateGlossary(text, 10);
         if (entries.length === 0) {
-          new import_obsidian29.Notice("No distinct technical terms found to glossary.");
+          new import_obsidian27.Notice("No distinct technical terms found to glossary.");
           return;
         }
         const md = this.glossaryService.formatGlossaryMarkdown(entries);
         const lastLine = editor.lineCount() - 1;
         const lastLineLength = editor.getLine(lastLine).length;
         editor.replaceRange(md, { line: lastLine, ch: lastLineLength });
-        new import_obsidian29.Notice(`Added glossary with ${entries.length} terms to note.`);
+        new import_obsidian27.Notice(`Added glossary with ${entries.length} terms to note.`);
       }
     });
     this.registerEvent(
       this.app.workspace.on("file-open", (file) => {
-        if (!file || !(file instanceof import_obsidian29.TFile) || file.extension !== "md")
+        if (!file || !(file instanceof import_obsidian27.TFile) || file.extension !== "md")
           return;
         this.checkAndInjectReviewBanner(file);
       })
     );
     this.registerEvent(
       this.app.vault.on("delete", async (file) => {
-        if (!(file instanceof import_obsidian29.TFile) || file.extension !== "md")
+        if (!(file instanceof import_obsidian27.TFile) || file.extension !== "md")
           return;
         const deletedPath = file.path;
         const deletedBasename = file.basename;
@@ -5815,7 +5793,7 @@ ${markdown}
     const today = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
     if (fm.review_due > today)
       return;
-    const activeView = this.app.workspace.getActiveViewOfType(import_obsidian29.MarkdownView);
+    const activeView = this.app.workspace.getActiveViewOfType(import_obsidian27.MarkdownView);
     if (!activeView)
       return;
     const container = activeView.contentEl;
@@ -5842,7 +5820,7 @@ ${markdown}
   }
   openYouTubePlayer(query) {
     new YouTubePlayerModal(this.app, query, (md) => {
-      const view = this.app.workspace.getActiveViewOfType(import_obsidian29.MarkdownView);
+      const view = this.app.workspace.getActiveViewOfType(import_obsidian27.MarkdownView);
       const editor = view?.editor;
       if (editor) {
         const cursor = editor.getCursor();
@@ -5858,7 +5836,7 @@ ${md}
   openWolframSolver(query) {
     new WolframSolverModal(this.app, this.wolframService, query, {
       onInsertMarkdown: (md) => {
-        const view = this.app.workspace.getActiveViewOfType(import_obsidian29.MarkdownView);
+        const view = this.app.workspace.getActiveViewOfType(import_obsidian27.MarkdownView);
         const editor = view?.editor;
         if (editor) {
           const cursor = editor.getCursor();
@@ -5928,7 +5906,7 @@ ${md}
       this.selectionDebounceTimer = null;
       if (this.isSelectionSuspended)
         return;
-      const activeMdView = this.app.workspace.getActiveViewOfType(import_obsidian29.MarkdownView);
+      const activeMdView = this.app.workspace.getActiveViewOfType(import_obsidian27.MarkdownView);
       let selectedText = "";
       let coords = null;
       let editor = void 0;
@@ -5973,7 +5951,7 @@ ${md}
     }, 150);
   }
   triggerLookupFromCurrentSelection() {
-    const activeMdView = this.app.workspace.getActiveViewOfType(import_obsidian29.MarkdownView);
+    const activeMdView = this.app.workspace.getActiveViewOfType(import_obsidian27.MarkdownView);
     let selected = "";
     let coords = null;
     let editor = void 0;
@@ -6002,7 +5980,7 @@ ${md}
       }
     }
     if (!selected) {
-      new import_obsidian29.Notice("Please select text to look up.");
+      new import_obsidian27.Notice("Please select text to look up.");
       return;
     }
     const isParagraph = selected.split(/\s+/).length >= 7 || selected.includes("\n") || selected.length > 60;
@@ -6066,7 +6044,7 @@ ${md}
         onInsertSummary: (summary) => {
           if (!editor) {
             void navigator.clipboard.writeText(summary);
-            new import_obsidian29.Notice("Summary copied to clipboard! (Cannot insert directly into PDF)");
+            new import_obsidian27.Notice("Summary copied to clipboard! (Cannot insert directly into PDF)");
             return;
           }
           const cursor = editor.getCursor();
@@ -6076,12 +6054,12 @@ ${md}
 ${summary}
 
 `, { line: cursor.line, ch: line.length });
-          new import_obsidian29.Notice("Inserted paragraph summary!");
+          new import_obsidian27.Notice("Inserted paragraph summary!");
         },
         onInsertFootnote: (takeaway) => {
           if (!editor) {
             void navigator.clipboard.writeText(takeaway);
-            new import_obsidian29.Notice("Footnote copied to clipboard! (Cannot insert directly into PDF)");
+            new import_obsidian27.Notice("Footnote copied to clipboard! (Cannot insert directly into PDF)");
             return;
           }
           this.insertFootnote(editor, takeaway);
@@ -6115,7 +6093,7 @@ ${summary}
     const lastLine = editor.lineCount() - 1;
     const lastLineLength = editor.getLine(lastLine).length;
     editor.replaceRange(footnoteDef, { line: lastLine, ch: lastLineLength });
-    new import_obsidian29.Notice(`Added footnote [^${nextNum}] to note!`);
+    new import_obsidian27.Notice(`Added footnote [^${nextNum}] to note!`);
   }
   onunload() {
     if (this.selectionDebounceTimer) {

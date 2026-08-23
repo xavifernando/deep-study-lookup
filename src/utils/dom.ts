@@ -1,5 +1,3 @@
-import { setCssStyles } from "obsidian";
-
 export interface Position {
   x: number;
   y: number;
@@ -63,7 +61,7 @@ export function positionElementNear(
 
   if (placeAbove) {
     maxAllowedHeight = Math.max(200, Math.min(520, spaceAbove));
-    setCssStyles(element, { maxHeight: `${Math.round(maxAllowedHeight)}px` });
+    element.setCssStyles({ maxHeight: `${Math.round(maxAllowedHeight)}px` });
     
     // Read offsetHeight after setting maxHeight
     const actualHeight = element.offsetHeight || maxAllowedHeight;
@@ -81,7 +79,7 @@ export function positionElementNear(
     left = viewportWidth - elWidth - 16;
   }
 
-  setCssStyles(element, {
+  element.setCssStyles({
     position: "fixed",
     maxHeight: `${Math.round(maxAllowedHeight)}px`,
     left: `${Math.round(left)}px`,

@@ -171,12 +171,12 @@ ${studyPack.webSourceUrl ? `- 🌍 **External Reference**: [Wikipedia / Research
     nextDate.setDate(nextDate.getDate() + interval);
     const nextDueStr = nextDate.toISOString().split("T")[0];
 
-    await this.app.fileManager.processFrontMatter(file, (fm) => {
-      fm.review_due = nextDueStr;
-      fm.interval_days = interval;
-      fm.reps = reps;
-      fm.ease_factor = parseFloat(ease.toFixed(2));
-      fm.last_reviewed = new Date().toISOString().split("T")[0];
+    await this.app.fileManager.processFrontMatter(file, (fm: Record<string, unknown>) => {
+      fm["review_due"] = nextDueStr;
+      fm["interval_days"] = interval;
+      fm["reps"] = reps;
+      fm["ease_factor"] = parseFloat(ease.toFixed(2));
+      fm["last_reviewed"] = new Date().toISOString().split("T")[0];
     });
 
     new Notice(`Recorded! Next review in ${interval} day${interval === 1 ? "" : "s"} (${nextDueStr}).`);

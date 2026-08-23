@@ -24,7 +24,7 @@ export class VaultMentionService {
     const files = this.app.vault.getMarkdownFiles();
     const regex = new RegExp(`\\b${cleanTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i");
 
-    const configDir = this.app.vault.configDir || ".obsidian";
+    const configDir = this.app.vault.configDir;
     for (const file of files) {
       if (currentFilePath && file.path === currentFilePath) continue;
       if (configDir && file.path.startsWith(configDir)) continue;

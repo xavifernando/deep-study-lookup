@@ -74,9 +74,9 @@ export class AnkiConnectClient {
   async getDueCardsCount(deckName?: string): Promise<number> {
     try {
       const targetDeck = deckName || this.settings.ankiDeckName || "Obsidian Vocabulary";
-      const cardIds = (await this.invoke("findCards", {
+      const cardIds = await this.invoke<number[]>("findCards", {
         query: `deck:"${targetDeck}" is:due`,
-      })) as number[];
+      });
       return Array.isArray(cardIds) ? cardIds.length : 0;
     } catch {
       return 0;
@@ -197,7 +197,7 @@ export class AnkiConnectClient {
       ];
     }
 
-    const noteId = (await this.invoke("addNote", { note: notePayload })) as number;
+    const noteId = await this.invoke<number>("addNote", { note: notePayload });
     return noteId;
   }
 

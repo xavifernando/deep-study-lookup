@@ -10,30 +10,6 @@ export interface YouTubeVideoResult {
   publishedTime?: string;
 }
 
-export class YouTubeService {
-  /**
-   * Search for educational and tutorial videos on YouTube
-   */
-  async searchVideos(query: string): Promise<YouTubeVideoResult[]> {
-    const results: YouTubeVideoResult[] = [];
-    const cleanQuery = query.trim();
-    if (!cleanQuery) return results;
-
-    const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(cleanQuery + " tutorial explained")}`;
-
-    try {
-      const res = await requestUrl({
-        url: searchUrl,
-        method: "GET",
-        headers: {
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-          "Accept-Language": "en-US,en;q=0.9",
-        },
-      });
-
-      if (res.status === 200 && res.text) {
-        // Extract ytInitialData JSON from HTML
-        const match = res.text.match(/ytInitialData\s*=\s*({.+?});/);
 interface YouTubeInitialData {
   contents?: {
     twoColumnSearchResultsRenderer?: {
@@ -67,6 +43,31 @@ interface InvidiousVideo {
   lengthSeconds?: number;
   viewCount?: number;
 }
+
+export class YouTubeService {
+  /**
+   * Search for educational and tutorial videos on YouTube
+   */
+  async searchVideos(query: string): Promise<YouTubeVideoResult[]> {
+    const results: YouTubeVideoResult[] = [];
+    const cleanQuery = query.trim();
+    if (!cleanQuery) return results;
+
+    const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(cleanQuery + " tutorial explained")}`;
+
+    try {
+      const res = await requestUrl({
+        url: searchUrl,
+        method: "GET",
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+          "Accept-Language": "en-US,en;q=0.9",
+        },
+      });
+
+      if (res.status === 200 && res.text) {
+        // Extract ytInitialData JSON from HTML
+        const match = res.text.match(/ytInitialData\s*=\s*({.+?});/);
 
         if (match && match[1]) {
           const data = JSON.parse(match[1]) as YouTubeInitialData;
