@@ -1,6 +1,26 @@
 import { requestUrl } from "obsidian";
 import { PluginSettings, WolframResult } from "../../types";
 
+export type { WolframResult };
+
+interface WolframSubpod {
+  plaintext?: string;
+  img?: { src?: string };
+}
+
+interface WolframPod {
+  id?: string;
+  primary?: boolean;
+  title?: string;
+  subpods?: WolframSubpod[];
+}
+
+interface WolframApiResponse {
+  queryresult?: {
+    pods?: WolframPod[];
+  };
+}
+
 export class WolframService {
   private settings: PluginSettings;
 
@@ -25,13 +45,14 @@ export class WolframService {
       try {
         const url = `https://api.wolframalpha.com/v2/query?input=${encodeURIComponent(cleanQuery)}&appid=${encodeURIComponent(appId)}&output=json`;
         const res = await requestUrl({ url, method: "GET" });
-        if (res.status === 200 && res.json?.queryresult?.pods) {
-          const pods = res.json.queryresult.pods;
-          const resultPod = pods.find((p: any) => p.id === "Result" || p.primary);
+        const json = res.json as WolframApiResponse | undefined;
+        if (res.status === 200 && json?.queryresult?.pods) {
+          const pods = json.queryresult.pods;
+          const resultPod = pods.find((p) => p.id === "Result" || p.primary);
           const solution = resultPod?.subpods?.[0]?.plaintext || pods[1]?.subpods?.[0]?.plaintext || "Computation completed.";
           const steps: string[] = [];
 
-          pods.forEach((p: any) => {
+          pods.forEach((p) => {
             if (p.title && p.subpods?.[0]?.plaintext) {
               steps.push(`**${p.title}**: ${p.subpods[0].plaintext}`);
             }
@@ -40,7 +61,7 @@ export class WolframService {
           return {
             query: cleanQuery,
             solution,
-            pods: pods.map((p: any) => ({
+            pods: pods.map((p) => ({
               title: p.title || "Step",
               text: p.subpods?.[0]?.plaintext || "",
               image: p.subpods?.[0]?.img?.src,

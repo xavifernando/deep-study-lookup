@@ -35,8 +35,8 @@ export class WikipediaProvider implements IDictionaryProvider {
         return null;
       }
 
-      const data: WikiSummaryResponse = response.json;
-      if (!data.extract) return null;
+      const data = response.json as WikiSummaryResponse;
+      if (!data?.extract) return null;
 
       return {
         word: data.title || cleanTerm,

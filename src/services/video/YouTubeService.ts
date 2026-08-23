@@ -34,8 +34,42 @@ export class YouTubeService {
       if (res.status === 200 && res.text) {
         // Extract ytInitialData JSON from HTML
         const match = res.text.match(/ytInitialData\s*=\s*({.+?});/);
+interface YouTubeInitialData {
+  contents?: {
+    twoColumnSearchResultsRenderer?: {
+      primaryContents?: {
+        sectionListRenderer?: {
+          contents?: Array<{
+            itemSectionRenderer?: {
+              contents?: Array<{
+                videoRenderer?: {
+                  videoId?: string;
+                  title?: { runs?: Array<{ text?: string }> };
+                  ownerText?: { runs?: Array<{ text?: string }> };
+                  lengthText?: { simpleText?: string };
+                  viewCountText?: { simpleText?: string };
+                  publishedTimeText?: { simpleText?: string };
+                  thumbnail?: { thumbnails?: Array<{ url?: string }> };
+                };
+              }>;
+            };
+          }>;
+        };
+      };
+    };
+  };
+}
+
+interface InvidiousVideo {
+  videoId?: string;
+  title?: string;
+  author?: string;
+  lengthSeconds?: number;
+  viewCount?: number;
+}
+
         if (match && match[1]) {
-          const data = JSON.parse(match[1]);
+          const data = JSON.parse(match[1]) as YouTubeInitialData;
           const contents =
             data?.contents?.twoColumnSearchResultsRenderer?.primaryContents?.sectionListRenderer?.contents?.[0]?.itemSectionRenderer?.contents;
 
@@ -48,8 +82,9 @@ export class YouTubeService {
                 const duration = video.lengthText?.simpleText || "";
                 const viewCount = video.viewCountText?.simpleText || "";
                 const publishedTime = video.publishedTimeText?.simpleText || "";
+                const thumbnails = video.thumbnail?.thumbnails;
                 const thumbnailUrl =
-                  video.thumbnail?.thumbnails?.[video.thumbnail.thumbnails.length - 1]?.url ||
+                  (thumbnails && thumbnails.length > 0 ? thumbnails[thumbnails.length - 1]?.url : undefined) ||
                   `https://i.ytimg.com/vi/${video.videoId}/hqdefault.jpg`;
 
                 results.push({
@@ -77,8 +112,9 @@ export class YouTubeService {
       try {
         const invidiousUrl = `https://invidious.privacydev.net/api/v1/search?q=${encodeURIComponent(cleanQuery + " explained")}&type=video`;
         const invRes = await requestUrl({ url: invidiousUrl, method: "GET" });
-        if (invRes.status === 200 && Array.isArray(invRes.json)) {
-          invRes.json.slice(0, 8).forEach((v: any) => {
+        const invData = invRes.json as InvidiousVideo[] | undefined;
+        if (invRes.status === 200 && Array.isArray(invData)) {
+          invData.slice(0, 8).forEach((v) => {
             if (v.videoId) {
               results.push({
                 videoId: v.videoId,

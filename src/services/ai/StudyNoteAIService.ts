@@ -39,15 +39,47 @@ export class StudyNoteAIService {
       termsToTry.push(...cleanTerm.split(" and ").map((t) => t.trim()));
     }
 
+interface WikiSummaryResponse {
+  extract?: string;
+  content_urls?: {
+    desktop?: {
+      page?: string;
+    };
+  };
+}
+
+interface WikiSearchResponse {
+  query?: {
+    search?: Array<{ snippet?: string }>;
+  };
+}
+
+interface GeminiStudyResponse {
+  candidates?: Array<{
+    content?: {
+      parts?: Array<{ text?: string }>;
+    };
+  }>;
+}
+
+interface OpenAIStudyResponse {
+  choices?: Array<{
+    message?: {
+      content?: string;
+    };
+  }>;
+}
+
     for (const t of termsToTry) {
       try {
         await this.throttle.wait();
         const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(t.replace(/\s+/g, "_"))}`;
         const res = await requestUrl({ url, method: "GET" });
-        if (res.status === 200 && res.json?.extract && res.json.extract.length > 40) {
-          summaryText = res.json.extract;
-          if (res.json.content_urls?.desktop?.page) {
-            sourceUrl = res.json.content_urls.desktop.page;
+        const json = res.json as WikiSummaryResponse | undefined;
+        if (res.status === 200 && json?.extract && json.extract.length > 40) {
+          summaryText = json.extract;
+          if (json.content_urls?.desktop?.page) {
+            sourceUrl = json.content_urls.desktop.page;
           }
           break;
         }
@@ -59,7 +91,8 @@ export class StudyNoteAIService {
         await this.throttle.wait();
         const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(t)}&utf8=&format=json`;
         const sRes = await requestUrl({ url: searchUrl, method: "GET" });
-        const snippet = sRes.json?.query?.search?.[0]?.snippet;
+        const sJson = sRes.json as WikiSearchResponse | undefined;
+        const snippet = sJson?.query?.search?.[0]?.snippet;
         if (snippet) {
           const cleanSnippet = snippet.replace(/<[^>]+>/g, "").trim();
           if (cleanSnippet.length > 40) {
@@ -191,11 +224,12 @@ Return ONLY valid JSON matching this schema:
         }),
       });
 
-      if (response.status === 200 && response.json) {
-        const text = response.json.candidates?.[0]?.content?.parts?.[0]?.text;
+      const json = response.json as GeminiStudyResponse | undefined;
+      if (response.status === 200 && json?.candidates) {
+        const text = json.candidates[0]?.content?.parts?.[0]?.text;
         if (text) {
           const clean = text.replace(/```json/g, "").replace(/```/g, "").trim();
-          return JSON.parse(clean);
+          return JSON.parse(clean) as StudyNoteResult;
         }
       }
     } catch {
@@ -230,12 +264,13 @@ Return ONLY valid JSON matching this schema:
       }),
     });
 
-    if (response.status !== 200 || !response.json) return null;
-    const text = response.json.choices?.[0]?.message?.content;
+    const json = response.json as OpenAIStudyResponse | undefined;
+    if (response.status !== 200 || !json?.choices) return null;
+    const text = json.choices[0]?.message?.content;
     if (!text) return null;
 
     const clean = text.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "").trim();
-    return JSON.parse(clean);
+    return JSON.parse(clean) as StudyNoteResult;
   }
 
   /**

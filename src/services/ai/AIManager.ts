@@ -93,8 +93,9 @@ export class AIManager {
         headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" },
       });
 
-      if (res.status === 200 && res.json && res.json.extract) {
-        extract = res.json.extract;
+      const json = res.json as { extract?: string } | undefined;
+      if (res.status === 200 && json?.extract) {
+        extract = json.extract;
         wikiFound = true;
       }
     } catch {

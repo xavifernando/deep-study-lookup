@@ -47,7 +47,7 @@ export class FreeDictionaryProvider implements IDictionaryProvider {
         return null;
       }
 
-      const data: RawDictionaryResponse[] = response.json;
+      const data = response.json as RawDictionaryResponse[];
       if (!Array.isArray(data) || data.length === 0) {
         return null;
       }

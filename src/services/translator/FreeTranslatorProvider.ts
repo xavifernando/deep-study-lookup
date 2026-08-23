@@ -71,8 +71,9 @@ export class FreeTranslatorProvider implements ITranslatorProvider {
       method: "GET",
     });
 
-    if (gRes.status === 200 && gRes.json && Array.isArray(gRes.json[0])) {
-      const translated = gRes.json[0].map((item: unknown[]) => item[0]).join("");
+    const gJson = gRes.json as unknown[][][] | undefined;
+    if (gRes.status === 200 && Array.isArray(gJson) && Array.isArray(gJson[0])) {
+      const translated = gJson[0].map((item) => (Array.isArray(item) && typeof item[0] === "string" ? item[0] : "")).join("");
       if (translated) {
         return {
           translatedText: translated,
@@ -92,7 +93,7 @@ export class FreeTranslatorProvider implements ITranslatorProvider {
       const res = await requestUrl({ url, method: "GET" });
 
       if (res.status === 200 && res.json) {
-        const data: MyMemoryResponse = res.json;
+        const data = res.json as MyMemoryResponse;
         if (data.responseData?.translatedText) {
           return this.decodeHtmlEntities(data.responseData.translatedText);
         }

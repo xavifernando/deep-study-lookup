@@ -142,13 +142,15 @@ export class CanvasService {
 
     const canvasContent = JSON.stringify(canvasData, null, 2);
 
-    let file = this.app.vault.getAbstractFileByPath(filePath);
-    if (file instanceof TFile) {
-      await this.app.vault.modify(file, canvasContent);
+    let targetFile: TFile;
+    const existing = this.app.vault.getAbstractFileByPath(filePath);
+    if (existing instanceof TFile) {
+      await this.app.vault.modify(existing, canvasContent);
+      targetFile = existing;
     } else {
-      file = await this.app.vault.create(filePath, canvasContent);
+      targetFile = await this.app.vault.create(filePath, canvasContent);
     }
 
-    return file as TFile;
+    return targetFile;
   }
 }

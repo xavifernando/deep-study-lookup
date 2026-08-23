@@ -82,17 +82,17 @@ export default class SmartLookupPlugin extends Plugin {
             .setTitle("📊 Open Mastery & Retention Dashboard")
             .setIcon("bar-chart-2")
             .onClick(async () => {
-              const md = await this.srsService.generateRetentionDashboardMarkdown();
+              const md = this.srsService.generateRetentionDashboardMarkdown();
               const path = normalizePath("📊 Learning Dashboard.md");
               const existing = this.app.vault.getAbstractFileByPath(path);
-              let file;
-              if (existing) {
+              let file: TFile;
+              if (existing instanceof TFile) {
                 file = existing;
-                await this.app.vault.modify(existing as any, md);
+                await this.app.vault.modify(existing, md);
               } else {
                 file = await this.app.vault.create(path, md);
               }
-              await this.app.workspace.getLeaf().openFile(file as any);
+              await this.app.workspace.getLeaf(false).openFile(file);
             })
         );
 
@@ -130,10 +130,10 @@ export default class SmartLookupPlugin extends Plugin {
     this.wolframService = new WolframService(this.settings);
     this.glossaryService = new GlossaryService(this.app, this.dictManager, this.settings);
     this.vocabLogService = new VocabLogService(this.app, this.settings, (count) => {
-      this.updateStatusBar(count);
+      void this.updateStatusBar(count);
     });
 
-    this.updateStatusBar(this.vocabLogService.getDailyCount());
+    void this.updateStatusBar(this.vocabLogService.getDailyCount());
 
     // Ribbon Icon: Smart Lookup & Dictionary
     this.addRibbonIcon("search", "Smart Lookup Definition & Research", () => {
@@ -175,18 +175,16 @@ export default class SmartLookupPlugin extends Plugin {
           return await this.studyNoteService.generateStudyPack(word, contextSentence);
         },
         onCreateStudyNote: async (studyPack: StudyNoteResult, contextSentence?: string) => {
-          const activeLeaf = this.app.workspace.activeLeaf;
-          const activeView = activeLeaf?.view;
-          const parentFile = (activeView as any)?.file;
-          let parentTitle = parentFile?.basename || "";
+          const activeFile = this.app.workspace.getActiveFile();
+          let parentTitle = activeFile?.basename || "";
 
           // PDF Page Detection: If viewing PDF, include exact page deep link (e.g. [[Lecture.pdf#page=14]])
-          if (activeView?.getViewType() === "pdf" || parentFile?.extension === "pdf") {
+          if (activeFile?.extension === "pdf") {
             const pageNum = this.getPdfActivePageNumber();
-            if (pageNum && parentFile?.name) {
-              parentTitle = `${parentFile.name}#page=${pageNum}`;
-            } else if (parentFile?.name) {
-              parentTitle = parentFile.name;
+            if (pageNum && activeFile.name) {
+              parentTitle = `${activeFile.name}#page=${pageNum}`;
+            } else if (activeFile.name) {
+              parentTitle = activeFile.name;
             }
           }
 
@@ -196,8 +194,9 @@ export default class SmartLookupPlugin extends Plugin {
           });
 
           // Bidirectional backlinking: replace selected text in markdown editor if available
-          if (activeView instanceof MarkdownView) {
-            const editor = activeView.editor;
+          const activeMarkdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
+          if (activeMarkdownView) {
+            const editor = activeMarkdownView.editor;
             if (editor.somethingSelected()) {
               const selected = editor.getSelection();
               editor.replaceSelection(`[[${result.file.path}|${selected}]]`);
@@ -228,16 +227,15 @@ export default class SmartLookupPlugin extends Plugin {
           return this.vaultMentionService.findMentions(term);
         },
         onNavigateWord: (word: string) => {
-          const activeLeaf = this.app.workspace.activeLeaf;
-          const activeView = activeLeaf?.view;
+          const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
           let editor: Editor | undefined = undefined;
           let bounds: RectBounds = { top: 150, left: 150, bottom: 170, right: 250, width: 100, height: 20 };
-          if (activeView instanceof MarkdownView) {
+          if (activeView) {
             editor = activeView.editor;
             const coords = getSelectionCoordinates(editor);
             if (coords) bounds = coords;
           }
-          this.executeLookup(word, bounds, editor);
+          void this.executeLookup(word, bounds, editor);
         },
         onInsertMarkdown: (markdown: string, replaceSelection = false) => {
           const view = this.app.workspace.getActiveViewOfType(MarkdownView);
@@ -294,16 +292,16 @@ export default class SmartLookupPlugin extends Plugin {
 
     this.floatingPill = new FloatingPill({
       onLookup: (selectedText, bounds) => {
-        const activeLeaf = this.app.workspace.activeLeaf;
-        const editor = activeLeaf?.view instanceof MarkdownView ? activeLeaf.view.editor : undefined;
-        this.executeLookup(selectedText, bounds, editor);
+        const mdView = this.app.workspace.getActiveViewOfType(MarkdownView);
+        const editor = mdView?.editor;
+        void this.executeLookup(selectedText, bounds, editor);
       },
       onSolve: (query) => {
         this.openWolframSolver(query);
       },
       onSummarize: (text) => {
-        const activeLeaf = this.app.workspace.activeLeaf;
-        const editor = activeLeaf?.view instanceof MarkdownView ? activeLeaf.view.editor : undefined;
+        const mdView = this.app.workspace.getActiveViewOfType(MarkdownView);
+        const editor = mdView?.editor;
         this.openParagraphModal(text, editor);
       },
       onSearchWeb: (query) => {
@@ -316,8 +314,6 @@ export default class SmartLookupPlugin extends Plugin {
       id: "lookup-selection",
       name: "Lookup definition for selected text",
       checkCallback: (checking: boolean) => {
-        const activeLeaf = this.app.workspace.activeLeaf;
-        if (!activeLeaf) return false;
         if (checking) return true;
         this.triggerLookupFromCurrentSelection();
         return true;
@@ -336,12 +332,11 @@ export default class SmartLookupPlugin extends Plugin {
       id: "summarize-paragraph",
       name: "Summarize and explain selected text",
       checkCallback: (checking: boolean) => {
-        const activeLeaf = this.app.workspace.activeLeaf;
-        if (!activeLeaf) return false;
+        const mdView = this.app.workspace.getActiveViewOfType(MarkdownView);
         let selected = "";
         let editor: Editor | undefined = undefined;
-        if (activeLeaf.view instanceof MarkdownView) {
-          editor = activeLeaf.view.editor;
+        if (mdView) {
+          editor = mdView.editor;
           selected = editor.getSelection().trim();
         } else {
           selected = window.getSelection()?.toString().trim() || "";
@@ -360,11 +355,10 @@ export default class SmartLookupPlugin extends Plugin {
       id: "solve-wolfram",
       name: "Solve problem with WolframAlpha",
       checkCallback: (checking: boolean) => {
-        const activeLeaf = this.app.workspace.activeLeaf;
-        if (!activeLeaf) return false;
+        const mdView = this.app.workspace.getActiveViewOfType(MarkdownView);
         let selected = "";
-        if (activeLeaf.view instanceof MarkdownView) {
-          selected = activeLeaf.view.editor.getSelection().trim();
+        if (mdView) {
+          selected = mdView.editor.getSelection().trim();
         } else {
           selected = window.getSelection()?.toString().trim() || "";
         }
@@ -391,17 +385,17 @@ export default class SmartLookupPlugin extends Plugin {
       id: "generate-retention-dashboard",
       name: "Generate spaced repetition retention dashboard",
       callback: async () => {
-        const md = await this.srsService.generateRetentionDashboardMarkdown();
+        const md = this.srsService.generateRetentionDashboardMarkdown();
         const path = normalizePath("📊 Learning Dashboard.md");
         const existing = this.app.vault.getAbstractFileByPath(path);
-        let file;
-        if (existing) {
+        let file: TFile;
+        if (existing instanceof TFile) {
           file = existing;
-          await this.app.vault.modify(existing as any, md);
+          await this.app.vault.modify(existing, md);
         } else {
           file = await this.app.vault.create(path, md);
         }
-        await this.app.workspace.getLeaf().openFile(file as any);
+        await this.app.workspace.getLeaf(false).openFile(file);
         new Notice("Generated spaced repetition dashboard.");
       },
     });
@@ -634,20 +628,14 @@ export default class SmartLookupPlugin extends Plugin {
       this.selectionDebounceTimer = null;
       if (this.isSelectionSuspended) return;
 
-      const activeLeaf = this.app.workspace.activeLeaf;
-      const activeView = activeLeaf?.view;
-      if (!activeView) {
-        this.floatingPill.hide();
-        return;
-      }
-
+      const activeMdView = this.app.workspace.getActiveViewOfType(MarkdownView);
       let selectedText = "";
       let coords: RectBounds | null = null;
       let editor: Editor | undefined = undefined;
 
       // Branch 1: Markdown Editor View
-      if (activeView instanceof MarkdownView) {
-        editor = activeView.editor;
+      if (activeMdView) {
+        editor = activeMdView.editor;
         selectedText = editor.getSelection().trim();
         if (selectedText) {
           coords = getSelectionCoordinates(editor);
@@ -684,7 +672,7 @@ export default class SmartLookupPlugin extends Plugin {
         if (isParagraph) {
           this.openParagraphModal(selectedText, editor);
         } else {
-          this.executeLookup(selectedText, coords, editor);
+          void this.executeLookup(selectedText, coords, editor);
         }
       } else if (this.settings.triggerMode === "selection_pill") {
         this.floatingPill.show(selectedText, coords);
@@ -693,14 +681,13 @@ export default class SmartLookupPlugin extends Plugin {
   }
 
   private triggerLookupFromCurrentSelection(): void {
-    const activeLeaf = this.app.workspace.activeLeaf;
-    const activeView = activeLeaf?.view;
+    const activeMdView = this.app.workspace.getActiveViewOfType(MarkdownView);
     let selected = "";
     let coords: RectBounds | null = null;
     let editor: Editor | undefined = undefined;
 
-    if (activeView instanceof MarkdownView) {
-      editor = activeView.editor;
+    if (activeMdView) {
+      editor = activeMdView.editor;
       selected = editor.getSelection().trim();
       if (selected) {
         coords = getSelectionCoordinates(editor);
@@ -744,7 +731,7 @@ export default class SmartLookupPlugin extends Plugin {
       height: 20,
     };
 
-    this.executeLookup(selected, coords, editor);
+    void this.executeLookup(selected, coords, editor);
   }
 
   async executeLookup(term: string, anchorRect: RectBounds, editor?: Editor): Promise<void> {
@@ -799,7 +786,7 @@ export default class SmartLookupPlugin extends Plugin {
       {
         onInsertSummary: (summary) => {
           if (!editor) {
-            navigator.clipboard.writeText(summary);
+            void navigator.clipboard.writeText(summary);
             new Notice("Summary copied to clipboard! (Cannot insert directly into PDF)");
             return;
           }
@@ -810,7 +797,7 @@ export default class SmartLookupPlugin extends Plugin {
         },
         onInsertFootnote: (takeaway) => {
           if (!editor) {
-            navigator.clipboard.writeText(takeaway);
+            void navigator.clipboard.writeText(takeaway);
             new Notice("Footnote copied to clipboard! (Cannot insert directly into PDF)");
             return;
           }
@@ -861,7 +848,7 @@ export default class SmartLookupPlugin extends Plugin {
   }
 
   async loadSettings() {
-    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+    this.settings = Object.assign({}, DEFAULT_SETTINGS, (await this.loadData()) as Partial<PluginSettings>);
   }
 
   async saveSettings() {
@@ -877,6 +864,6 @@ export default class SmartLookupPlugin extends Plugin {
     this.wolframService?.updateSettings(this.settings);
     this.vocabLogService?.updateSettings(this.settings);
     this.glossaryService?.updateSettings(this.settings);
-    this.updateStatusBar();
+    await this.updateStatusBar();
   }
 }

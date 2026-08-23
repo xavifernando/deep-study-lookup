@@ -158,7 +158,7 @@ export class SmartLookupSettingTab extends PluginSettingTab {
         toggle.setValue(this.plugin.settings.enableStatusBar).onChange(async (val) => {
           this.plugin.settings.enableStatusBar = val;
           await this.plugin.saveSettings();
-          this.plugin.updateStatusBar();
+          await this.plugin.updateStatusBar();
         })
       );
 

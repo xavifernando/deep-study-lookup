@@ -18,6 +18,11 @@ export interface AnkiCardPayload {
   }[];
 }
 
+interface AnkiResponse<T = unknown> {
+  error?: string | null;
+  result?: T;
+}
+
 export class AnkiConnectClient {
   private settings: PluginSettings;
 
@@ -29,12 +34,10 @@ export class AnkiConnectClient {
     this.settings = settings;
   }
 
-  private async invoke(action: string, params: Record<string, unknown> = {}): Promise<unknown> {
-    const url = (this.settings.ankiConnectUrl || "http://127.0.0.1:8765").replace(/\/+$/, "");
-
+  private async invoke<T = unknown>(action: string, params: Record<string, unknown> = {}): Promise<T> {
     try {
       const response = await requestUrl({
-        url,
+        url: this.settings.ankiConnectUrl || "http://127.0.0.1:8765",
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -44,16 +47,16 @@ export class AnkiConnectClient {
         }),
       });
 
-      if (response.status !== 200 || !response.json) {
+      const res = response.json as AnkiResponse<T> | undefined;
+      if (response.status !== 200 || !res) {
         throw new Error(`AnkiConnect HTTP ${response.status}`);
       }
 
-      const res = response.json;
       if (res.error) {
         throw new Error(`Anki Error: ${res.error}`);
       }
 
-      return res.result;
+      return res.result as T;
     } catch (err: unknown) {
       const msg = (err as Error)?.message || String(err);
       if (msg.includes("Failed to fetch") || msg.includes("ECONNREFUSED") || msg.includes("404")) {
@@ -64,7 +67,7 @@ export class AnkiConnectClient {
   }
 
   async getDeckNames(): Promise<string[]> {
-    const result = await this.invoke("deckNames");
+    const result = await this.invoke<string[]>("deckNames");
     return Array.isArray(result) ? result : [];
   }
 

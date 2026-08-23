@@ -74,7 +74,7 @@ export class WolframSolverModal extends Modal {
     const triggerSolve = () => {
       const q = input.value.trim();
       if (q) {
-        this.doSolve(q);
+        void this.doSolve(q);
       }
     };
 

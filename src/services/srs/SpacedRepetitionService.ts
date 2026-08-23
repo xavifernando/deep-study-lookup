@@ -102,15 +102,17 @@ ${options.contextSentence ? `- 🎯 **Context in Note**: *“${options.contextSe
 - 🏷️ **Domain Tags**: \`#study-note\` \`#deep-dive\` \`#active-recall\` \`#memory-palace\` \`#spaced-repetition\` \`#${domainTag}\`
 ${studyPack.webSourceUrl ? `- 🌍 **External Reference**: [Wikipedia / Research Source](${studyPack.webSourceUrl})` : ""}`;
 
-    let file = this.app.vault.getAbstractFileByPath(filePath);
-    if (file instanceof TFile) {
-      await this.app.vault.modify(file, content);
+    let targetFile: TFile;
+    const existingFile = this.app.vault.getAbstractFileByPath(filePath);
+    if (existingFile instanceof TFile) {
+      await this.app.vault.modify(existingFile, content);
+      targetFile = existingFile;
     } else {
-      file = await this.app.vault.create(filePath, content);
+      targetFile = await this.app.vault.create(filePath, content);
     }
 
     const linkMarkdown = `[[${filePath}|🧠 ${studyPack.title} (Deep-Dive Note)]]`;
-    return { file: file as TFile, linkMarkdown };
+    return { file: targetFile, linkMarkdown };
   }
 
   /**
@@ -255,18 +257,17 @@ ${studyPack.webSourceUrl ? `- 🌍 **External Reference**: [Wikipedia / Research
   }
 
   private formatClozeAnswer(answer: string, title: string): string {
-    const words = title.trim().split(/\s+/).filter((w) => w.length > 2);
-    let formatted = answer;
+    return this.generateClozeContent(answer, title);
+  }
 
-    // First check exact title match
-    const titleEscaped = title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const titleRegex = new RegExp(`\\b(${titleEscaped})\\b`, "i");
-    if (titleRegex.test(formatted)) {
-      return formatted.replace(titleRegex, "{{c1::$1}}");
-    }
-
-    // Otherwise wrap main key term
+  /**
+   * Generate Markdown content for Cloze Deletion note
+   */
+  generateClozeContent(text: string, selectedWord: string): string {
+    let formatted = text;
+    const words = selectedWord.split(/\s+/);
     for (const word of words) {
+      if (word.length < 2) continue;
       const wEscaped = word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       const wRegex = new RegExp(`\\b(${wEscaped})\\b`, "i");
       if (wRegex.test(formatted)) {
@@ -277,8 +278,8 @@ ${studyPack.webSourceUrl ? `- 🌍 **External Reference**: [Wikipedia / Research
     return formatted;
   }
 
-  async generateRetentionDashboardMarkdown(): Promise<string> {
-    const dueNotes = await this.getDueStudyNotes();
+  generateRetentionDashboardMarkdown(): string {
+    const dueNotes = this.getDueStudyNotes();
     const allFiles = this.app.vault.getMarkdownFiles();
     const studyNotes = allFiles.filter((f) => f.path.startsWith(this.settings.studyNotesFolder || "Study Notes"));
 
@@ -295,8 +296,8 @@ ${studyPack.webSourceUrl ? `- 🌍 **External Reference**: [Wikipedia / Research
       }
       domainCounts[domain].total++;
 
-      const interval = typeof fm?.srsInterval === "number" ? fm.srsInterval : 1;
-      const reps = typeof fm?.srsRepetitions === "number" ? fm.srsRepetitions : 0;
+      const interval = typeof fm?.interval_days === "number" ? fm.interval_days : 1;
+      const reps = typeof fm?.reps === "number" ? fm.reps : 0;
       totalReps += reps;
       if (interval >= 21) {
         domainCounts[domain].mastered++;
@@ -334,8 +335,11 @@ ${studyPack.webSourceUrl ? `- 🌍 **External Reference**: [Wikipedia / Research
     } else {
       md += `| Concept Note | Interval | Reps | Action |\n`;
       md += `| :--- | :--- | :--- | :--- |\n`;
-      dueNotes.slice(0, 20).forEach((n) => {
-        md += `| [[${n.file.basename}]] | ${n.interval}d | ${n.repetitions} reps | [Open Note](obsidian://open?file=${encodeURIComponent(n.file.path)}) |\n`;
+      dueNotes.slice(0, 20).forEach((file) => {
+        const cache = this.app.metadataCache.getFileCache(file);
+        const interval = typeof cache?.frontmatter?.interval_days === "number" ? cache.frontmatter.interval_days : 1;
+        const reps = typeof cache?.frontmatter?.reps === "number" ? cache.frontmatter.reps : 0;
+        md += `| [[${file.basename}]] | ${interval}d | ${reps} reps | [Open Note](obsidian://open?file=${encodeURIComponent(file.path)}) |\n`;
       });
       md += `\n`;
     }

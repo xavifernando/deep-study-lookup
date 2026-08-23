@@ -39,10 +39,10 @@ export class ImageHoverCard {
     });
 
     const info = this.el.createDiv({ cls: "smart-lookup-hover-info" });
-    info.createEl("div", { cls: "smart-lookup-hover-title", text: image.title });
+    info.createDiv({ cls: "smart-lookup-hover-title", text: image.title });
     
     if (image.author || image.source) {
-      const meta = info.createEl("div", { cls: "smart-lookup-hover-meta" });
+      const meta = info.createDiv({ cls: "smart-lookup-hover-meta" });
       if (image.author) {
         meta.createSpan({ text: `By ${image.author} • ` });
       }

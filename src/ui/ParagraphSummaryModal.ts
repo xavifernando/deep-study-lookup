@@ -114,10 +114,10 @@ export class ParagraphSummaryModal extends Modal {
         cls: "smart-lookup-btn",
         text: "📋 Copy",
       });
-      copyBtn.onclick = () => {
+      copyBtn.onclick = async () => {
         const bullets = res.summaryBulletPoints?.map((b) => `- ${b}`).join("\n") || "";
         const fullMd = `> [!abstract] 📌 ${res.title}\n${bullets}\n>\n> **Takeaway**: ${res.actionableTakeaway}`;
-        navigator.clipboard.writeText(fullMd);
+        await navigator.clipboard.writeText(fullMd);
         new Notice("Copied summary to clipboard!");
       };
 

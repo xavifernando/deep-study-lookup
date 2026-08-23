@@ -16,11 +16,11 @@ export class YouTubePlayerModal extends Modal {
     this.service = new YouTubeService();
   }
 
-  onOpen() {
+  async onOpen() {
     this.modalEl.addClass("smart-lookup-youtube-modal");
     this.render();
     if (this.currentQuery) {
-      this.doSearch(this.currentQuery);
+      await this.doSearch(this.currentQuery);
     }
   }
 
@@ -55,7 +55,7 @@ export class YouTubePlayerModal extends Modal {
       if (q) {
         this.currentQuery = q;
         this.activeVideo = null;
-        this.doSearch(q);
+        void this.doSearch(q);
       }
     };
 
@@ -105,7 +105,7 @@ export class YouTubePlayerModal extends Modal {
 
     // Embedded Responsive IFrame
     const iframeWrap = playerBox.createDiv({ cls: "smart-lookup-yt-iframe-wrap" });
-    const iframe = iframeWrap.createEl("iframe", {
+    iframeWrap.createEl("iframe", {
       attr: {
         src: `https://www.youtube-nocookie.com/embed/${video.videoId}?autoplay=1&rel=0`,
         title: video.title,

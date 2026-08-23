@@ -1,4 +1,4 @@
-import { App, Notice, TFile } from "obsidian";
+import { App } from "obsidian";
 import { DictionaryManager } from "../dictionary/DictionaryManager";
 import { PluginSettings } from "../../types";
 

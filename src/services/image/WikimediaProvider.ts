@@ -40,10 +40,32 @@ export class WikimediaProvider implements IImageProvider {
         method: "GET",
       });
 
+interface WikiSummaryImageResponse {
+  title?: string;
+  thumbnail?: { source?: string };
+  originalimage?: { source?: string };
+  content_urls?: { desktop?: { page?: string } };
+}
+
+interface CommonsPage {
+  title?: string;
+  imageinfo?: Array<{
+    url?: string;
+    thumburl?: string;
+    descriptionurl?: string;
+  }>;
+}
+
+interface CommonsQueryResponse {
+  query?: {
+    pages?: Record<string, CommonsPage>;
+  };
+}
+
       if (response.status !== 200 || !response.json) return [];
 
-      const data: WikiQueryResponse = response.json;
-      if (!data.query || !data.query.pages) return [];
+      const data = response.json as WikiQueryResponse;
+      if (!data?.query?.pages) return [];
 
       const results: ImageResult[] = [];
       for (const pageId in data.query.pages) {
@@ -70,13 +92,14 @@ export class WikimediaProvider implements IImageProvider {
       try {
         const sumUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(cleanTerm.replace(/\s+/g, "_"))}`;
         const sumRes = await requestUrl({ url: sumUrl, method: "GET" });
-        if (sumRes.status === 200 && sumRes.json?.thumbnail?.source) {
+        const sumJson = sumRes.json as WikiSummaryImageResponse | undefined;
+        if (sumRes.status === 200 && sumJson?.thumbnail?.source) {
           results.push({
-            url: sumRes.json.originalimage?.source || sumRes.json.thumbnail.source,
-            thumbUrl: sumRes.json.thumbnail.source,
-            title: sumRes.json.title || cleanTerm,
+            url: sumJson.originalimage?.source || sumJson.thumbnail.source,
+            thumbUrl: sumJson.thumbnail.source,
+            title: sumJson.title || cleanTerm,
             source: "wikimedia",
-            sourceUrl: sumRes.json.content_urls?.desktop?.page || `https://en.wikipedia.org/wiki/${encodeURIComponent(cleanTerm)}`,
+            sourceUrl: sumJson.content_urls?.desktop?.page || `https://en.wikipedia.org/wiki/${encodeURIComponent(cleanTerm)}`,
           });
         }
       } catch {
@@ -87,15 +110,17 @@ export class WikimediaProvider implements IImageProvider {
       try {
         const commonsUrl = `https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(cleanTerm)}&gsrnamespace=6&gsrlimit=${limit}&prop=imageinfo&iiprop=url|thumburl&iiurlwidth=400&format=json&origin=*`;
         const cRes = await requestUrl({ url: commonsUrl, method: "GET" });
-        if (cRes.status === 200 && cRes.json?.query?.pages) {
-          const pages = cRes.json.query.pages;
+        const cJson = cRes.json as CommonsQueryResponse | undefined;
+        if (cRes.status === 200 && cJson?.query?.pages) {
+          const pages = cJson.query.pages;
           for (const pid in pages) {
-            const info = pages[pid]?.imageinfo?.[0];
+            const page = pages[pid];
+            const info = page?.imageinfo?.[0];
             if (info && info.thumburl) {
               results.push({
                 url: info.url || info.thumburl,
                 thumbUrl: info.thumburl,
-                title: pages[pid].title?.replace(/^File:/, "").replace(/\.[^/.]+$/, "") || cleanTerm,
+                title: page?.title?.replace(/^File:/, "").replace(/\.[^/.]+$/, "") || cleanTerm,
                 source: "wikimedia",
                 sourceUrl: info.descriptionurl || `https://commons.wikimedia.org/?curid=${pid}`,
               });

@@ -102,7 +102,7 @@ export class AnkiDeckModal extends Modal {
       categories[cat].forEach((subDeck) => {
         const itemRow = listDiv.createDiv({ cls: "smart-lookup-deck-row" });
 
-        const label = itemRow.createSpan({
+        itemRow.createSpan({
           text: subDeck,
           cls: subDeck === selectedVal ? "smart-lookup-deck-label-active" : "",
         });
@@ -148,7 +148,7 @@ export class AnkiDeckModal extends Modal {
               new Notice(`Created Anki deck "${name}"!`);
               this.onSelectDeck(name);
               this.close();
-            } catch (err) {
+            } catch {
               new Notice(`Created locally and switched target to "${name}"`);
               this.onSelectDeck(name);
               this.close();

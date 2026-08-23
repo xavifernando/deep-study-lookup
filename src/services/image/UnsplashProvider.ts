@@ -49,8 +49,8 @@ export class UnsplashProvider implements IImageProvider {
 
       if (response.status !== 200 || !response.json) return [];
 
-      const data: UnsplashSearchResponse = response.json;
-      if (!data.results || !Array.isArray(data.results)) return [];
+      const data = response.json as UnsplashSearchResponse;
+      if (!data?.results || !Array.isArray(data.results)) return [];
 
       return data.results.slice(0, limit).map((photo) => ({
         url: photo.urls.regular,

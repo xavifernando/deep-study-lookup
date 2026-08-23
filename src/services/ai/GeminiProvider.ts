@@ -68,8 +68,9 @@ Return ONLY a valid JSON object matching this schema:
           }),
         });
 
-        if (response.status === 200 && response.json) {
-          const candidate = response.json.candidates?.[0]?.content?.parts?.[0]?.text;
+        const json = response.json as GeminiResponse | undefined;
+        if (response.status === 200 && json?.candidates) {
+          const candidate = json.candidates[0]?.content?.parts?.[0]?.text;
           if (candidate) {
             return this.parseResponse(candidate);
           }
@@ -90,7 +91,7 @@ Return ONLY a valid JSON object matching this schema:
   private parseResponse(text: string): AIExplanationResult {
     try {
       const clean = text.replace(/```json/g, "").replace(/```/g, "").trim();
-      return JSON.parse(clean);
+      return JSON.parse(clean) as AIExplanationResult;
     } catch {
       return {
         summary: text.slice(0, 150),

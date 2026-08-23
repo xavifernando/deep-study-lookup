@@ -1,66 +1,70 @@
 import { requestUrl } from "obsidian";
-import { AIExplanationResult, PluginSettings } from "../../types";
-import { AIExplanationOptions, IAIProvider } from "./IAIProvider";
+import { AIExplanationResult, IAIProvider } from "../../types";
+
+interface OpenAIChoice {
+  message?: {
+    content?: string;
+  };
+}
+
+interface OpenAIResponse {
+  choices?: OpenAIChoice[];
+}
 
 export class OpenAICompatibleProvider implements IAIProvider {
-  name = "OpenAI Compatible / Ollama";
-  private settings: PluginSettings;
+  name: string;
+  private endpoint: string;
+  private defaultModel: string;
 
-  constructor(settings: PluginSettings) {
-    this.settings = settings;
+  constructor(name: string, endpoint: string, defaultModel: string) {
+    this.name = name;
+    this.endpoint = endpoint;
+    this.defaultModel = defaultModel;
   }
 
-  async explain(options: AIExplanationOptions): Promise<AIExplanationResult | null> {
-    let baseUrl = this.settings.aiBaseUrl || "https://api.openai.com/v1";
-    baseUrl = baseUrl.replace(/\/+$/, "");
+  async explain(
+    term: string,
+    contextSentence?: string,
+    apiKey?: string,
+    model?: string,
+    targetLanguage?: string
+  ): Promise<AIExplanationResult | null> {
+    const langInstruction =
+      targetLanguage && targetLanguage !== "en"
+        ? ` Respond in language: ${targetLanguage}.`
+        : "";
 
-    let endpoint = `${baseUrl}/chat/completions`;
-    if (this.settings.aiProvider === "ollama" && !this.settings.aiBaseUrl) {
-      endpoint = "http://localhost:11434/v1/chat/completions";
-    }
+    const prompt = `You are a world-class lexicographer, educator, and cognitive learning scientist. Explain the following word or technical concept clearly and insightfully.${langInstruction}
 
-    const model = this.settings.aiModel || (this.settings.aiProvider === "ollama" ? "llama3" : "gpt-3.5-turbo");
-    const levelInstruction = options.complexityLevel === "eli5"
-      ? "Complexity Target: Explain for a beginner / ELI5 with everyday analogies and zero jargon."
-      : options.complexityLevel === "expert"
-      ? "Complexity Target: Explain at an advanced, rigorous, technical academic level with exact operational mechanics."
-      : "Complexity Target: Explain clearly and practically for general learning.";
+Word: "${term}"
+${contextSentence ? `Context in which it appears: "${contextSentence}"` : ""}
 
-    const prompt = `You are a concise vocabulary explainer.
-Explain the word/term "${options.word}".
-${levelInstruction}
-${options.contextSentence ? `Context where it appears: "${options.contextSentence}"` : ""}
-Target language: ${options.targetLanguage || "English"}
-
-Return ONLY a valid JSON object matching this schema:
+Respond ONLY with a valid JSON object strictly matching this schema:
 {
-  "summary": "1-sentence summary",
-  "simpleExplanation": "Explanation matching the complexity target (2-3 sentences)",
-  "etymology": "Origin or roots",
-  "exampleSentences": ["Example 1", "Example 2"],
-  "contextualMeaning": "Specific contextual meaning if context was provided",
-  "translation": "Translation if target language is not English"
+  "summary": "Brief 1-sentence definition of the term",
+  "simpleExplanation": "Clear, intuitive explanation (ELI5 / beginner friendly)",
+  "etymology": "Origin or morphological breakdown (Greek/Latin roots if applicable)",
+  "analogicalBridge": "A memorable real-world analogy explaining how it works",
+  "mnemonic": "A clever, vivid mnemonic hook or memory device to never forget it",
+  "exampleSentences": ["Natural example 1", "Natural example 2"]
 }`;
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
     };
-
-    if (this.settings.aiApiKey) {
-      headers["Authorization"] = `Bearer ${this.settings.aiApiKey}`;
+    if (apiKey && apiKey.trim()) {
+      headers["Authorization"] = `Bearer ${apiKey.trim()}`;
     }
 
+    const modelToUse = model && model !== "custom" ? model : this.defaultModel;
+
     const response = await requestUrl({
-      url: endpoint,
+      url: this.endpoint,
       method: "POST",
       headers,
       body: JSON.stringify({
-        model,
+        model: modelToUse,
         messages: [
-          {
-            role: "system",
-            content: "You are a helpful assistant that outputs only valid JSON.",
-          },
           {
             role: "user",
             content: prompt,
@@ -70,16 +74,17 @@ Return ONLY a valid JSON object matching this schema:
       }),
     });
 
-    if (response.status !== 200 || !response.json) {
+    const json = response.json as OpenAIResponse | undefined;
+    if (response.status !== 200 || !json) {
       throw new Error(`AI API error: HTTP ${response.status}`);
     }
 
-    const content = response.json.choices?.[0]?.message?.content;
+    const content = json.choices?.[0]?.message?.content;
     if (!content) return null;
 
     try {
       const clean = content.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "").trim();
-      return JSON.parse(clean);
+      return JSON.parse(clean) as AIExplanationResult;
     } catch {
       return {
         summary: content,

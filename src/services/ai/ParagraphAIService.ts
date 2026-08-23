@@ -51,6 +51,22 @@ Return valid JSON:
   "actionableTakeaway": "1 clear sentence on the definitive practical takeaway or significance."
 }`;
 
+interface GeminiApiResponse {
+  candidates?: Array<{
+    content?: {
+      parts?: Array<{ text?: string }>;
+    };
+  }>;
+}
+
+interface OpenAIApiResponse {
+  choices?: Array<{
+    message?: {
+      content?: string;
+    };
+  }>;
+}
+
         let textResponse = "";
         const timeoutMs = (this.settings.aiTimeoutSeconds || 30) * 1000;
 
@@ -67,7 +83,8 @@ Return valid JSON:
                 generationConfig: { temperature: 0.2 },
               }),
             });
-            return res.json?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+            const json = res.json as GeminiApiResponse | undefined;
+            return json?.candidates?.[0]?.content?.parts?.[0]?.text || "";
           } else {
             let baseUrl = this.settings.aiBaseUrl || "https://api.openai.com/v1";
             baseUrl = baseUrl.replace(/\/+$/, "");
@@ -84,7 +101,8 @@ Return valid JSON:
                 temperature: 0.2,
               }),
             });
-            return res.json?.choices?.[0]?.message?.content || "";
+            const json = res.json as OpenAIApiResponse | undefined;
+            return json?.choices?.[0]?.message?.content || "";
           }
         })();
 
@@ -93,7 +111,7 @@ Return valid JSON:
 
         if (textResponse) {
           const clean = textResponse.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "").trim();
-          const parsed = JSON.parse(clean);
+          const parsed = JSON.parse(clean) as ParagraphAnalysisResult;
           if (parsed.summaryBulletPoints && parsed.simplifiedExplanation) {
             parsed.sourceBadge = this.settings.aiProvider === "gemini"
               ? `✨ ${this.settings.aiModel || "Gemini"}`

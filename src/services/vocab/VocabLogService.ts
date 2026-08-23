@@ -12,7 +12,7 @@ export class VocabLogService {
     this.app = app;
     this.settings = settings;
     this.onCountChange = onCountChange;
-    this.initDailyCount();
+    void this.initDailyCount();
   }
 
   updateSettings(settings: PluginSettings): void {

@@ -86,8 +86,9 @@ Return ONLY a valid JSON object matching this schema:
             }
           })
         });
-        if (response.status === 200 && response.json) {
-          const candidate = response.json.candidates?.[0]?.content?.parts?.[0]?.text;
+        const json = response.json;
+        if (response.status === 200 && json?.candidates) {
+          const candidate = json.candidates[0]?.content?.parts?.[0]?.text;
           if (candidate) {
             return this.parseResponse(candidate);
           }
@@ -119,51 +120,41 @@ Return ONLY a valid JSON object matching this schema:
 // src/services/ai/OpenAICompatibleProvider.ts
 var import_obsidian2 = require("obsidian");
 var OpenAICompatibleProvider = class {
-  constructor(settings) {
-    this.name = "OpenAI Compatible / Ollama";
-    this.settings = settings;
+  constructor(name, endpoint, defaultModel) {
+    this.name = name;
+    this.endpoint = endpoint;
+    this.defaultModel = defaultModel;
   }
-  async explain(options) {
-    let baseUrl = this.settings.aiBaseUrl || "https://api.openai.com/v1";
-    baseUrl = baseUrl.replace(/\/+$/, "");
-    let endpoint = `${baseUrl}/chat/completions`;
-    if (this.settings.aiProvider === "ollama" && !this.settings.aiBaseUrl) {
-      endpoint = "http://localhost:11434/v1/chat/completions";
-    }
-    const model = this.settings.aiModel || (this.settings.aiProvider === "ollama" ? "llama3" : "gpt-3.5-turbo");
-    const levelInstruction = options.complexityLevel === "eli5" ? "Complexity Target: Explain for a beginner / ELI5 with everyday analogies and zero jargon." : options.complexityLevel === "expert" ? "Complexity Target: Explain at an advanced, rigorous, technical academic level with exact operational mechanics." : "Complexity Target: Explain clearly and practically for general learning.";
-    const prompt = `You are a concise vocabulary explainer.
-Explain the word/term "${options.word}".
-${levelInstruction}
-${options.contextSentence ? `Context where it appears: "${options.contextSentence}"` : ""}
-Target language: ${options.targetLanguage || "English"}
+  async explain(term, contextSentence, apiKey, model, targetLanguage) {
+    const langInstruction = targetLanguage && targetLanguage !== "en" ? ` Respond in language: ${targetLanguage}.` : "";
+    const prompt = `You are a world-class lexicographer, educator, and cognitive learning scientist. Explain the following word or technical concept clearly and insightfully.${langInstruction}
 
-Return ONLY a valid JSON object matching this schema:
+Word: "${term}"
+${contextSentence ? `Context in which it appears: "${contextSentence}"` : ""}
+
+Respond ONLY with a valid JSON object strictly matching this schema:
 {
-  "summary": "1-sentence summary",
-  "simpleExplanation": "Explanation matching the complexity target (2-3 sentences)",
-  "etymology": "Origin or roots",
-  "exampleSentences": ["Example 1", "Example 2"],
-  "contextualMeaning": "Specific contextual meaning if context was provided",
-  "translation": "Translation if target language is not English"
+  "summary": "Brief 1-sentence definition of the term",
+  "simpleExplanation": "Clear, intuitive explanation (ELI5 / beginner friendly)",
+  "etymology": "Origin or morphological breakdown (Greek/Latin roots if applicable)",
+  "analogicalBridge": "A memorable real-world analogy explaining how it works",
+  "mnemonic": "A clever, vivid mnemonic hook or memory device to never forget it",
+  "exampleSentences": ["Natural example 1", "Natural example 2"]
 }`;
     const headers = {
       "Content-Type": "application/json"
     };
-    if (this.settings.aiApiKey) {
-      headers["Authorization"] = `Bearer ${this.settings.aiApiKey}`;
+    if (apiKey && apiKey.trim()) {
+      headers["Authorization"] = `Bearer ${apiKey.trim()}`;
     }
+    const modelToUse = model && model !== "custom" ? model : this.defaultModel;
     const response = await (0, import_obsidian2.requestUrl)({
-      url: endpoint,
+      url: this.endpoint,
       method: "POST",
       headers,
       body: JSON.stringify({
-        model,
+        model: modelToUse,
         messages: [
-          {
-            role: "system",
-            content: "You are a helpful assistant that outputs only valid JSON."
-          },
           {
             role: "user",
             content: prompt
@@ -172,10 +163,11 @@ Return ONLY a valid JSON object matching this schema:
         temperature: 0.2
       })
     });
-    if (response.status !== 200 || !response.json) {
+    const json = response.json;
+    if (response.status !== 200 || !json) {
       throw new Error(`AI API error: HTTP ${response.status}`);
     }
-    const content = response.json.choices?.[0]?.message?.content;
+    const content = json.choices?.[0]?.message?.content;
     if (!content)
       return null;
     try {
@@ -310,8 +302,9 @@ var AIManager = class {
         method: "GET",
         headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" }
       });
-      if (res.status === 200 && res.json && res.json.extract) {
-        extract = res.json.extract;
+      const json = res.json;
+      if (res.status === 200 && json?.extract) {
+        extract = json.extract;
         wikiFound = true;
       }
     } catch {
@@ -382,7 +375,8 @@ Return valid JSON:
                 generationConfig: { temperature: 0.2 }
               })
             });
-            return res.json?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+            const json = res.json;
+            return json?.candidates?.[0]?.content?.parts?.[0]?.text || "";
           } else {
             let baseUrl = this.settings.aiBaseUrl || "https://api.openai.com/v1";
             baseUrl = baseUrl.replace(/\/+$/, "");
@@ -400,7 +394,8 @@ Return valid JSON:
                 temperature: 0.2
               })
             });
-            return res.json?.choices?.[0]?.message?.content || "";
+            const json = res.json;
+            return json?.choices?.[0]?.message?.content || "";
           }
         })();
         const timeoutPromise = new Promise((resolve) => window.setTimeout(() => resolve(""), timeoutMs));
@@ -475,7 +470,12 @@ var RequestThrottle = class {
   async wait() {
     const elapsed = Date.now() - this.lastRequestTime;
     if (elapsed < this.minIntervalMs) {
-      await new Promise((r) => setTimeout(r, this.minIntervalMs - elapsed));
+      const delay = this.minIntervalMs - elapsed;
+      if (typeof window !== "undefined" && typeof window.setTimeout === "function") {
+        await new Promise((r) => window.setTimeout(r, delay));
+      } else {
+        await new Promise((r) => setTimeout(r, delay));
+      }
     }
     this.lastRequestTime = Date.now();
   }
@@ -506,10 +506,11 @@ var StudyNoteAIService = class {
         await this.throttle.wait();
         const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(t.replace(/\s+/g, "_"))}`;
         const res = await (0, import_obsidian5.requestUrl)({ url, method: "GET" });
-        if (res.status === 200 && res.json?.extract && res.json.extract.length > 40) {
-          summaryText = res.json.extract;
-          if (res.json.content_urls?.desktop?.page) {
-            sourceUrl = res.json.content_urls.desktop.page;
+        const json = res.json;
+        if (res.status === 200 && json?.extract && json.extract.length > 40) {
+          summaryText = json.extract;
+          if (json.content_urls?.desktop?.page) {
+            sourceUrl = json.content_urls.desktop.page;
           }
           break;
         }
@@ -519,7 +520,8 @@ var StudyNoteAIService = class {
         await this.throttle.wait();
         const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(t)}&utf8=&format=json`;
         const sRes = await (0, import_obsidian5.requestUrl)({ url: searchUrl, method: "GET" });
-        const snippet = sRes.json?.query?.search?.[0]?.snippet;
+        const sJson = sRes.json;
+        const snippet = sJson?.query?.search?.[0]?.snippet;
         if (snippet) {
           const cleanSnippet = snippet.replace(/<[^>]+>/g, "").trim();
           if (cleanSnippet.length > 40) {
@@ -634,8 +636,9 @@ Return ONLY valid JSON matching this schema:
           generationConfig: { temperature: 0.2 }
         })
       });
-      if (response.status === 200 && response.json) {
-        const text = response.json.candidates?.[0]?.content?.parts?.[0]?.text;
+      const json = response.json;
+      if (response.status === 200 && json?.candidates) {
+        const text = json.candidates[0]?.content?.parts?.[0]?.text;
         if (text) {
           const clean = text.replace(/```json/g, "").replace(/```/g, "").trim();
           return JSON.parse(clean);
@@ -667,9 +670,10 @@ Return ONLY valid JSON matching this schema:
         temperature: 0.2
       })
     });
-    if (response.status !== 200 || !response.json)
+    const json = response.json;
+    if (response.status !== 200 || !json?.choices)
       return null;
-    const text = response.json.choices?.[0]?.message?.content;
+    const text = json.choices[0]?.message?.content;
     if (!text)
       return null;
     const clean = text.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "").trim();
@@ -753,10 +757,9 @@ var AnkiConnectClient = class {
     this.settings = settings;
   }
   async invoke(action, params = {}) {
-    const url = (this.settings.ankiConnectUrl || "http://127.0.0.1:8765").replace(/\/+$/, "");
     try {
       const response = await (0, import_obsidian6.requestUrl)({
-        url,
+        url: this.settings.ankiConnectUrl || "http://127.0.0.1:8765",
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -765,10 +768,10 @@ var AnkiConnectClient = class {
           params
         })
       });
-      if (response.status !== 200 || !response.json) {
+      const res = response.json;
+      if (response.status !== 200 || !res) {
         throw new Error(`AnkiConnect HTTP ${response.status}`);
       }
-      const res = response.json;
       if (res.error) {
         throw new Error(`Anki Error: ${res.error}`);
       }
@@ -1089,13 +1092,15 @@ ${(studyPack.keyRules || studyPack.keyPoints || [studyPack.summary]).map((kp) =>
       edges
     };
     const canvasContent = JSON.stringify(canvasData, null, 2);
-    let file = this.app.vault.getAbstractFileByPath(filePath);
-    if (file instanceof import_obsidian7.TFile) {
-      await this.app.vault.modify(file, canvasContent);
+    let targetFile;
+    const existing = this.app.vault.getAbstractFileByPath(filePath);
+    if (existing instanceof import_obsidian7.TFile) {
+      await this.app.vault.modify(existing, canvasContent);
+      targetFile = existing;
     } else {
-      file = await this.app.vault.create(filePath, canvasContent);
+      targetFile = await this.app.vault.create(filePath, canvasContent);
     }
-    return file;
+    return targetFile;
   }
 };
 
@@ -1147,22 +1152,22 @@ var AudioPlayer = class {
           this.cleanupBlob();
           resolve();
         };
-        audio.onerror = (e) => {
+        audio.onerror = () => {
           this.cleanupBlob();
-          reject(e);
+          reject(new Error("Audio element playback failed"));
         };
         audio.play().catch((err) => {
           this.cleanupBlob();
-          reject(err);
+          reject(err instanceof Error ? err : new Error(String(err)));
         });
       });
-    } catch (err) {
+    } catch {
       return new Promise((resolve, reject) => {
         const audio = new Audio(cleanUrl);
         this.currentAudio = audio;
         audio.onended = () => resolve();
-        audio.onerror = (e) => reject(e);
-        audio.play().catch(reject);
+        audio.onerror = () => reject(new Error("Fallback audio playback failed"));
+        audio.play().catch((err) => reject(err instanceof Error ? err : new Error(String(err))));
       });
     }
   }
@@ -1331,7 +1336,7 @@ var WikipediaProvider = class {
         return null;
       }
       const data = response.json;
-      if (!data.extract)
+      if (!data?.extract)
         return null;
       return {
         word: data.title || cleanTerm,
@@ -1619,7 +1624,7 @@ var UnsplashProvider = class {
       if (response.status !== 200 || !response.json)
         return [];
       const data = response.json;
-      if (!data.results || !Array.isArray(data.results))
+      if (!data?.results || !Array.isArray(data.results))
         return [];
       return data.results.slice(0, limit).map((photo) => ({
         url: photo.urls.regular,
@@ -1656,7 +1661,7 @@ var WikimediaProvider = class {
       if (response.status !== 200 || !response.json)
         return [];
       const data = response.json;
-      if (!data.query || !data.query.pages)
+      if (!data?.query?.pages)
         return [];
       const results = [];
       for (const pageId in data.query.pages) {
@@ -1680,13 +1685,14 @@ var WikimediaProvider = class {
       try {
         const sumUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(cleanTerm.replace(/\s+/g, "_"))}`;
         const sumRes = await (0, import_obsidian12.requestUrl)({ url: sumUrl, method: "GET" });
-        if (sumRes.status === 200 && sumRes.json?.thumbnail?.source) {
+        const sumJson = sumRes.json;
+        if (sumRes.status === 200 && sumJson?.thumbnail?.source) {
           results.push({
-            url: sumRes.json.originalimage?.source || sumRes.json.thumbnail.source,
-            thumbUrl: sumRes.json.thumbnail.source,
-            title: sumRes.json.title || cleanTerm,
+            url: sumJson.originalimage?.source || sumJson.thumbnail.source,
+            thumbUrl: sumJson.thumbnail.source,
+            title: sumJson.title || cleanTerm,
             source: "wikimedia",
-            sourceUrl: sumRes.json.content_urls?.desktop?.page || `https://en.wikipedia.org/wiki/${encodeURIComponent(cleanTerm)}`
+            sourceUrl: sumJson.content_urls?.desktop?.page || `https://en.wikipedia.org/wiki/${encodeURIComponent(cleanTerm)}`
           });
         }
       } catch {
@@ -1694,15 +1700,17 @@ var WikimediaProvider = class {
       try {
         const commonsUrl = `https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(cleanTerm)}&gsrnamespace=6&gsrlimit=${limit}&prop=imageinfo&iiprop=url|thumburl&iiurlwidth=400&format=json&origin=*`;
         const cRes = await (0, import_obsidian12.requestUrl)({ url: commonsUrl, method: "GET" });
-        if (cRes.status === 200 && cRes.json?.query?.pages) {
-          const pages = cRes.json.query.pages;
+        const cJson = cRes.json;
+        if (cRes.status === 200 && cJson?.query?.pages) {
+          const pages = cJson.query.pages;
           for (const pid in pages) {
-            const info = pages[pid]?.imageinfo?.[0];
+            const page = pages[pid];
+            const info = page?.imageinfo?.[0];
             if (info && info.thumburl) {
               results.push({
                 url: info.url || info.thumburl,
                 thumbUrl: info.thumburl,
-                title: pages[pid].title?.replace(/^File:/, "").replace(/\.[^/.]+$/, "") || cleanTerm,
+                title: page?.title?.replace(/^File:/, "").replace(/\.[^/.]+$/, "") || cleanTerm,
                 source: "wikimedia",
                 sourceUrl: info.descriptionurl || `https://commons.wikimedia.org/?curid=${pid}`
               });
@@ -1887,14 +1895,16 @@ ${options.contextSentence ? `- \u{1F3AF} **Context in Note**: *\u201C${options.c
 - \u{1F310} **Related Concepts**: ${(studyPack.quickLinks && studyPack.quickLinks.length > 0 ? studyPack.quickLinks : ["System Fundamentals", "Domain Principles"]).map((l) => `[[${l}]]`).join(", ")}
 - \u{1F3F7}\uFE0F **Domain Tags**: \`#study-note\` \`#deep-dive\` \`#active-recall\` \`#memory-palace\` \`#spaced-repetition\` \`#${domainTag}\`
 ${studyPack.webSourceUrl ? `- \u{1F30D} **External Reference**: [Wikipedia / Research Source](${studyPack.webSourceUrl})` : ""}`;
-    let file = this.app.vault.getAbstractFileByPath(filePath);
-    if (file instanceof import_obsidian13.TFile) {
-      await this.app.vault.modify(file, content);
+    let targetFile;
+    const existingFile = this.app.vault.getAbstractFileByPath(filePath);
+    if (existingFile instanceof import_obsidian13.TFile) {
+      await this.app.vault.modify(existingFile, content);
+      targetFile = existingFile;
     } else {
-      file = await this.app.vault.create(filePath, content);
+      targetFile = await this.app.vault.create(filePath, content);
     }
     const linkMarkdown = `[[${filePath}|\u{1F9E0} ${studyPack.title} (Deep-Dive Note)]]`;
-    return { file, linkMarkdown };
+    return { file: targetFile, linkMarkdown };
   }
   /**
    * Check if a note opened by the user is due for Spaced Repetition Active Recall
@@ -2027,14 +2037,17 @@ ${studyPack.webSourceUrl ? `- \u{1F30D} **External Reference**: [Wikipedia / Res
     return "academic-concept";
   }
   formatClozeAnswer(answer, title) {
-    const words = title.trim().split(/\s+/).filter((w) => w.length > 2);
-    let formatted = answer;
-    const titleEscaped = title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const titleRegex = new RegExp(`\\b(${titleEscaped})\\b`, "i");
-    if (titleRegex.test(formatted)) {
-      return formatted.replace(titleRegex, "{{c1::$1}}");
-    }
+    return this.generateClozeContent(answer, title);
+  }
+  /**
+   * Generate Markdown content for Cloze Deletion note
+   */
+  generateClozeContent(text, selectedWord) {
+    let formatted = text;
+    const words = selectedWord.split(/\s+/);
     for (const word of words) {
+      if (word.length < 2)
+        continue;
       const wEscaped = word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       const wRegex = new RegExp(`\\b(${wEscaped})\\b`, "i");
       if (wRegex.test(formatted)) {
@@ -2044,8 +2057,8 @@ ${studyPack.webSourceUrl ? `- \u{1F30D} **External Reference**: [Wikipedia / Res
     }
     return formatted;
   }
-  async generateRetentionDashboardMarkdown() {
-    const dueNotes = await this.getDueStudyNotes();
+  generateRetentionDashboardMarkdown() {
+    const dueNotes = this.getDueStudyNotes();
     const allFiles = this.app.vault.getMarkdownFiles();
     const studyNotes = allFiles.filter((f) => f.path.startsWith(this.settings.studyNotesFolder || "Study Notes"));
     const domainCounts = {};
@@ -2059,8 +2072,8 @@ ${studyPack.webSourceUrl ? `- \u{1F30D} **External Reference**: [Wikipedia / Res
         domainCounts[domain] = { total: 0, mastered: 0 };
       }
       domainCounts[domain].total++;
-      const interval = typeof fm?.srsInterval === "number" ? fm.srsInterval : 1;
-      const reps = typeof fm?.srsRepetitions === "number" ? fm.srsRepetitions : 0;
+      const interval = typeof fm?.interval_days === "number" ? fm.interval_days : 1;
+      const reps = typeof fm?.reps === "number" ? fm.reps : 0;
       totalReps += reps;
       if (interval >= 21) {
         domainCounts[domain].mastered++;
@@ -2118,8 +2131,11 @@ ${studyPack.webSourceUrl ? `- \u{1F30D} **External Reference**: [Wikipedia / Res
 `;
       md += `| :--- | :--- | :--- | :--- |
 `;
-      dueNotes.slice(0, 20).forEach((n) => {
-        md += `| [[${n.file.basename}]] | ${n.interval}d | ${n.repetitions} reps | [Open Note](obsidian://open?file=${encodeURIComponent(n.file.path)}) |
+      dueNotes.slice(0, 20).forEach((file) => {
+        const cache = this.app.metadataCache.getFileCache(file);
+        const interval = typeof cache?.frontmatter?.interval_days === "number" ? cache.frontmatter.interval_days : 1;
+        const reps = typeof cache?.frontmatter?.reps === "number" ? cache.frontmatter.reps : 0;
+        md += `| [[${file.basename}]] | ${interval}d | ${reps} reps | [Open Note](obsidian://open?file=${encodeURIComponent(file.path)}) |
 `;
       });
       md += `
@@ -2190,8 +2206,9 @@ var FreeTranslatorProvider = class {
       url: gUrl,
       method: "GET"
     });
-    if (gRes.status === 200 && gRes.json && Array.isArray(gRes.json[0])) {
-      const translated = gRes.json[0].map((item) => item[0]).join("");
+    const gJson = gRes.json;
+    if (gRes.status === 200 && Array.isArray(gJson) && Array.isArray(gJson[0])) {
+      const translated = gJson[0].map((item) => Array.isArray(item) && typeof item[0] === "string" ? item[0] : "").join("");
       if (translated) {
         return {
           translatedText: translated,
@@ -2290,7 +2307,7 @@ var VaultMentionService = class {
     for (const file of files) {
       if (currentFilePath && file.path === currentFilePath)
         continue;
-      if (file.path.startsWith(configDir))
+      if (configDir && file.path.startsWith(configDir))
         continue;
       try {
         const content = await this.app.vault.cachedRead(file);
@@ -2324,7 +2341,7 @@ var VocabLogService = class {
     this.app = app;
     this.settings = settings;
     this.onCountChange = onCountChange;
-    this.initDailyCount();
+    void this.initDailyCount();
   }
   updateSettings(settings) {
     this.settings = settings;
@@ -2437,8 +2454,9 @@ var WolframService = class {
       try {
         const url = `https://api.wolframalpha.com/v2/query?input=${encodeURIComponent(cleanQuery)}&appid=${encodeURIComponent(appId)}&output=json`;
         const res = await (0, import_obsidian16.requestUrl)({ url, method: "GET" });
-        if (res.status === 200 && res.json?.queryresult?.pods) {
-          const pods = res.json.queryresult.pods;
+        const json = res.json;
+        if (res.status === 200 && json?.queryresult?.pods) {
+          const pods = json.queryresult.pods;
           const resultPod = pods.find((p) => p.id === "Result" || p.primary);
           const solution = resultPod?.subpods?.[0]?.plaintext || pods[1]?.subpods?.[0]?.plaintext || "Computation completed.";
           const steps = [];
@@ -3159,7 +3177,7 @@ var ActiveRecallReviewModal = class extends import_obsidian17.Modal {
     });
     const mainBody = contentEl.createDiv({ cls: "smart-lookup-review-body" });
     if (this.queue.length === 0) {
-      this.srsService.recordReviewCompletion();
+      void this.srsService.recordReviewCompletion();
       const emptyState = mainBody.createDiv({ cls: "smart-lookup-review-empty" });
       const party = emptyState.createSpan({ cls: "smart-lookup-party-icon" });
       (0, import_obsidian17.setIcon)(party, "sparkles");
@@ -3428,9 +3446,9 @@ var ImageHoverCard = class {
       }
     });
     const info = this.el.createDiv({ cls: "smart-lookup-hover-info" });
-    info.createEl("div", { cls: "smart-lookup-hover-title", text: image.title });
+    info.createDiv({ cls: "smart-lookup-hover-title", text: image.title });
     if (image.author || image.source) {
-      const meta = info.createEl("div", { cls: "smart-lookup-hover-meta" });
+      const meta = info.createDiv({ cls: "smart-lookup-hover-meta" });
       if (image.author) {
         meta.createSpan({ text: `By ${image.author} \u2022 ` });
       }
@@ -3615,7 +3633,7 @@ var AnkiDeckModal = class extends import_obsidian22.Modal {
       const listDiv = details.createDiv({ cls: "smart-lookup-deck-list" });
       categories[cat].forEach((subDeck) => {
         const itemRow = listDiv.createDiv({ cls: "smart-lookup-deck-row" });
-        const label = itemRow.createSpan({
+        itemRow.createSpan({
           text: subDeck,
           cls: subDeck === selectedVal ? "smart-lookup-deck-label-active" : ""
         });
@@ -3651,7 +3669,7 @@ var AnkiDeckModal = class extends import_obsidian22.Modal {
           new import_obsidian22.Notice(`Created Anki deck "${name}"!`);
           this.onSelectDeck(name);
           this.close();
-        } catch (err) {
+        } catch {
           new import_obsidian22.Notice(`Created locally and switched target to "${name}"`);
           this.onSelectDeck(name);
           this.close();
@@ -3885,12 +3903,12 @@ var LookupPopover = class {
     if (this.settings.enableStudyNotes) {
       this.renderStudyNoteSection(body, term);
     }
-    this.renderVaultMentions(body, term);
+    void this.renderVaultMentions(body, term);
   }
   playAudio() {
     const audioPhonetic = this.currentEntry?.phonetics?.find((p) => p.audio);
     const text = this.currentEntry?.word || this.currentTerm;
-    AudioPlayer.playOrSpeak(text, audioPhonetic?.audio, this.settings.accentDialect);
+    void AudioPlayer.playOrSpeak(text, audioPhonetic?.audio, this.settings.accentDialect);
   }
   renderImageBar(images) {
     const bar = this.el.createDiv({ cls: "smart-lookup-image-bar" });
@@ -3927,7 +3945,7 @@ var LookupPopover = class {
       posHeader.createSpan({ cls: "smart-lookup-pos-badge", text: meaning.partOfSpeech });
       meaning.definitions.slice(0, 3).forEach((def, index) => {
         const defRow = meaningBlock.createDiv({ cls: "smart-lookup-def-row" });
-        defRow.createEl("span", { cls: "smart-lookup-def-num", text: `${index + 1}.` });
+        defRow.createSpan({ cls: "smart-lookup-def-num", text: `${index + 1}.` });
         const textWrap = defRow.createDiv({ cls: "smart-lookup-def-text-wrap" });
         textWrap.createSpan({ cls: "smart-lookup-def-text", text: def.definition });
         if (def.example) {
@@ -3971,7 +3989,7 @@ var LookupPopover = class {
           if (this.callbacks.onOpenWolframSolver) {
             this.callbacks.onOpenWolframSolver(term);
           } else {
-            this.displayWolframSolver(container, term);
+            void this.displayWolframSolver(container, term);
           }
         } else if (eng.id === "youtube") {
           if (this.callbacks.onOpenVideoPlayer) {
@@ -4087,7 +4105,7 @@ ${res.markdownFormatted}
           });
           (0, import_obsidian23.setIcon)(audioBtn, "volume-2");
           audioBtn.onclick = () => {
-            AudioPlayer.playOrSpeak(res.translatedText, void 0, langCode);
+            void AudioPlayer.playOrSpeak(res.translatedText, void 0, langCode);
           };
           const copyBtn = actionsWrap.createEl("button", {
             cls: "smart-lookup-icon-btn",
@@ -4104,9 +4122,9 @@ ${res.markdownFormatted}
       }
     };
     select.onchange = () => {
-      doTranslate(select.value);
+      void doTranslate(select.value);
     };
-    doTranslate(this.selectedTargetLang);
+    void doTranslate(this.selectedTargetLang);
   }
   // --- Deep-Dive Study Notes ---
   renderStudyNoteSection(container, term) {
@@ -4286,7 +4304,7 @@ ${heading}
       btn.onclick = () => {
         tierWrap.querySelectorAll(".smart-lookup-tier-btn").forEach((b) => b.removeClass("is-active"));
         btn.addClass("is-active");
-        fetchTier(t.id);
+        void fetchTier(t.id);
       };
     });
     if (this.currentAiResult) {
@@ -4298,7 +4316,7 @@ ${heading}
       text: "\u26A1 Explain concept & context"
     });
     askBtn.onclick = () => {
-      fetchTier(this.activeComplexity);
+      void fetchTier(this.activeComplexity);
     };
   }
   displayAIResult(container, res) {
@@ -4453,8 +4471,8 @@ ${heading}
     const menu = document.body.createDiv({ cls: "smart-lookup-insert-menu" });
     const addItem = (label, desc, style, replace = false) => {
       const item = menu.createDiv({ cls: "smart-lookup-menu-item" });
-      item.createEl("div", { text: label, cls: "smart-lookup-menu-title" });
-      item.createEl("div", { text: desc, cls: "smart-lookup-menu-desc" });
+      item.createDiv({ text: label, cls: "smart-lookup-menu-title" });
+      item.createDiv({ text: desc, cls: "smart-lookup-menu-desc" });
       item.addEventListener("mousedown", (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -4503,7 +4521,7 @@ ${markdown}
       }
       new import_obsidian23.Notice(successNotice);
     } else {
-      navigator.clipboard.writeText(markdown);
+      void navigator.clipboard.writeText(markdown);
       new import_obsidian23.Notice("Copied to clipboard!");
     }
   }
@@ -4677,13 +4695,13 @@ ${bullets}
         cls: "smart-lookup-btn",
         text: "\u{1F4CB} Copy"
       });
-      copyBtn.onclick = () => {
+      copyBtn.onclick = async () => {
         const bullets = res.summaryBulletPoints?.map((b) => `- ${b}`).join("\n") || "";
         const fullMd = `> [!abstract] \u{1F4CC} ${res.title}
 ${bullets}
 >
 > **Takeaway**: ${res.actionableTakeaway}`;
-        navigator.clipboard.writeText(fullMd);
+        await navigator.clipboard.writeText(fullMd);
         new import_obsidian24.Notice("Copied summary to clipboard!");
       };
       const exitBtn = btnRow.createEl("button", {
@@ -4796,7 +4814,7 @@ var SmartLookupSettingTab = class extends import_obsidian25.PluginSettingTab {
       (toggle) => toggle.setValue(this.plugin.settings.enableStatusBar).onChange(async (val) => {
         this.plugin.settings.enableStatusBar = val;
         await this.plugin.saveSettings();
-        this.plugin.updateStatusBar();
+        await this.plugin.updateStatusBar();
       })
     );
     new import_obsidian25.Setting(containerEl).setName("Multi-Language Translation").setHeading();
@@ -5033,7 +5051,7 @@ var WolframSolverModal = class extends import_obsidian26.Modal {
     const triggerSolve = () => {
       const q = input.value.trim();
       if (q) {
-        this.doSolve(q);
+        void this.doSolve(q);
       }
     };
     solveBtn.onclick = triggerSolve;
@@ -5150,7 +5168,8 @@ var YouTubeService = class {
                 const duration = video.lengthText?.simpleText || "";
                 const viewCount = video.viewCountText?.simpleText || "";
                 const publishedTime = video.publishedTimeText?.simpleText || "";
-                const thumbnailUrl = video.thumbnail?.thumbnails?.[video.thumbnail.thumbnails.length - 1]?.url || `https://i.ytimg.com/vi/${video.videoId}/hqdefault.jpg`;
+                const thumbnails = video.thumbnail?.thumbnails;
+                const thumbnailUrl = (thumbnails && thumbnails.length > 0 ? thumbnails[thumbnails.length - 1]?.url : void 0) || `https://i.ytimg.com/vi/${video.videoId}/hqdefault.jpg`;
                 results.push({
                   videoId: video.videoId,
                   title,
@@ -5174,8 +5193,9 @@ var YouTubeService = class {
       try {
         const invidiousUrl = `https://invidious.privacydev.net/api/v1/search?q=${encodeURIComponent(cleanQuery + " explained")}&type=video`;
         const invRes = await (0, import_obsidian27.requestUrl)({ url: invidiousUrl, method: "GET" });
-        if (invRes.status === 200 && Array.isArray(invRes.json)) {
-          invRes.json.slice(0, 8).forEach((v) => {
+        const invData = invRes.json;
+        if (invRes.status === 200 && Array.isArray(invData)) {
+          invData.slice(0, 8).forEach((v) => {
             if (v.videoId) {
               results.push({
                 videoId: v.videoId,
@@ -5206,11 +5226,11 @@ var YouTubePlayerModal = class extends import_obsidian28.Modal {
     this.onInsertMarkdown = onInsertMarkdown;
     this.service = new YouTubeService();
   }
-  onOpen() {
+  async onOpen() {
     this.modalEl.addClass("smart-lookup-youtube-modal");
     this.render();
     if (this.currentQuery) {
-      this.doSearch(this.currentQuery);
+      await this.doSearch(this.currentQuery);
     }
   }
   render() {
@@ -5238,7 +5258,7 @@ var YouTubePlayerModal = class extends import_obsidian28.Modal {
       if (q) {
         this.currentQuery = q;
         this.activeVideo = null;
-        this.doSearch(q);
+        void this.doSearch(q);
       }
     };
     searchBtn.onclick = triggerSearch;
@@ -5277,7 +5297,7 @@ var YouTubePlayerModal = class extends import_obsidian28.Modal {
   renderPlayerSection(container, video) {
     const playerBox = container.createDiv({ cls: "smart-lookup-yt-player-box" });
     const iframeWrap = playerBox.createDiv({ cls: "smart-lookup-yt-iframe-wrap" });
-    const iframe = iframeWrap.createEl("iframe", {
+    iframeWrap.createEl("iframe", {
       attr: {
         src: `https://www.youtube-nocookie.com/embed/${video.videoId}?autoplay=1&rel=0`,
         title: video.title,
@@ -5392,17 +5412,17 @@ var SmartLookupPlugin = class extends import_obsidian29.Plugin {
         );
         menu.addItem(
           (item) => item.setTitle("\u{1F4CA} Open Mastery & Retention Dashboard").setIcon("bar-chart-2").onClick(async () => {
-            const md = await this.srsService.generateRetentionDashboardMarkdown();
+            const md = this.srsService.generateRetentionDashboardMarkdown();
             const path = (0, import_obsidian29.normalizePath)("\u{1F4CA} Learning Dashboard.md");
             const existing = this.app.vault.getAbstractFileByPath(path);
             let file;
-            if (existing) {
+            if (existing instanceof import_obsidian29.TFile) {
               file = existing;
               await this.app.vault.modify(existing, md);
             } else {
               file = await this.app.vault.create(path, md);
             }
-            await this.app.workspace.getLeaf().openFile(file);
+            await this.app.workspace.getLeaf(false).openFile(file);
           })
         );
         menu.addItem(
@@ -5433,9 +5453,9 @@ var SmartLookupPlugin = class extends import_obsidian29.Plugin {
     this.wolframService = new WolframService(this.settings);
     this.glossaryService = new GlossaryService(this.app, this.dictManager, this.settings);
     this.vocabLogService = new VocabLogService(this.app, this.settings, (count) => {
-      this.updateStatusBar(count);
+      void this.updateStatusBar(count);
     });
-    this.updateStatusBar(this.vocabLogService.getDailyCount());
+    void this.updateStatusBar(this.vocabLogService.getDailyCount());
     this.addRibbonIcon("search", "Smart Lookup Definition & Research", () => {
       this.triggerLookupFromCurrentSelection();
     });
@@ -5469,24 +5489,23 @@ var SmartLookupPlugin = class extends import_obsidian29.Plugin {
           return await this.studyNoteService.generateStudyPack(word, contextSentence);
         },
         onCreateStudyNote: async (studyPack, contextSentence) => {
-          const activeLeaf = this.app.workspace.activeLeaf;
-          const activeView = activeLeaf?.view;
-          const parentFile = activeView?.file;
-          let parentTitle = parentFile?.basename || "";
-          if (activeView?.getViewType() === "pdf" || parentFile?.extension === "pdf") {
+          const activeFile = this.app.workspace.getActiveFile();
+          let parentTitle = activeFile?.basename || "";
+          if (activeFile?.extension === "pdf") {
             const pageNum = this.getPdfActivePageNumber();
-            if (pageNum && parentFile?.name) {
-              parentTitle = `${parentFile.name}#page=${pageNum}`;
-            } else if (parentFile?.name) {
-              parentTitle = parentFile.name;
+            if (pageNum && activeFile.name) {
+              parentTitle = `${activeFile.name}#page=${pageNum}`;
+            } else if (activeFile.name) {
+              parentTitle = activeFile.name;
             }
           }
           const result = await this.srsService.createStudyNote(studyPack, {
             parentNoteTitle: parentTitle,
             contextSentence
           });
-          if (activeView instanceof import_obsidian29.MarkdownView) {
-            const editor = activeView.editor;
+          const activeMarkdownView = this.app.workspace.getActiveViewOfType(import_obsidian29.MarkdownView);
+          if (activeMarkdownView) {
+            const editor = activeMarkdownView.editor;
             if (editor.somethingSelected()) {
               const selected = editor.getSelection();
               editor.replaceSelection(`[[${result.file.path}|${selected}]]`);
@@ -5519,17 +5538,16 @@ var SmartLookupPlugin = class extends import_obsidian29.Plugin {
           return this.vaultMentionService.findMentions(term);
         },
         onNavigateWord: (word) => {
-          const activeLeaf = this.app.workspace.activeLeaf;
-          const activeView = activeLeaf?.view;
+          const activeView = this.app.workspace.getActiveViewOfType(import_obsidian29.MarkdownView);
           let editor = void 0;
           let bounds = { top: 150, left: 150, bottom: 170, right: 250, width: 100, height: 20 };
-          if (activeView instanceof import_obsidian29.MarkdownView) {
+          if (activeView) {
             editor = activeView.editor;
             const coords = getSelectionCoordinates(editor);
             if (coords)
               bounds = coords;
           }
-          this.executeLookup(word, bounds, editor);
+          void this.executeLookup(word, bounds, editor);
         },
         onInsertMarkdown: (markdown, replaceSelection = false) => {
           const view = this.app.workspace.getActiveViewOfType(import_obsidian29.MarkdownView);
@@ -5594,16 +5612,16 @@ ${markdown}
     );
     this.floatingPill = new FloatingPill({
       onLookup: (selectedText, bounds) => {
-        const activeLeaf = this.app.workspace.activeLeaf;
-        const editor = activeLeaf?.view instanceof import_obsidian29.MarkdownView ? activeLeaf.view.editor : void 0;
-        this.executeLookup(selectedText, bounds, editor);
+        const mdView = this.app.workspace.getActiveViewOfType(import_obsidian29.MarkdownView);
+        const editor = mdView?.editor;
+        void this.executeLookup(selectedText, bounds, editor);
       },
       onSolve: (query) => {
         this.openWolframSolver(query);
       },
       onSummarize: (text) => {
-        const activeLeaf = this.app.workspace.activeLeaf;
-        const editor = activeLeaf?.view instanceof import_obsidian29.MarkdownView ? activeLeaf.view.editor : void 0;
+        const mdView = this.app.workspace.getActiveViewOfType(import_obsidian29.MarkdownView);
+        const editor = mdView?.editor;
         this.openParagraphModal(text, editor);
       },
       onSearchWeb: (query) => {
@@ -5614,9 +5632,6 @@ ${markdown}
       id: "lookup-selection",
       name: "Lookup definition for selected text",
       checkCallback: (checking) => {
-        const activeLeaf = this.app.workspace.activeLeaf;
-        if (!activeLeaf)
-          return false;
         if (checking)
           return true;
         this.triggerLookupFromCurrentSelection();
@@ -5634,13 +5649,11 @@ ${markdown}
       id: "summarize-paragraph",
       name: "Summarize and explain selected text",
       checkCallback: (checking) => {
-        const activeLeaf = this.app.workspace.activeLeaf;
-        if (!activeLeaf)
-          return false;
+        const mdView = this.app.workspace.getActiveViewOfType(import_obsidian29.MarkdownView);
         let selected = "";
         let editor = void 0;
-        if (activeLeaf.view instanceof import_obsidian29.MarkdownView) {
-          editor = activeLeaf.view.editor;
+        if (mdView) {
+          editor = mdView.editor;
           selected = editor.getSelection().trim();
         } else {
           selected = window.getSelection()?.toString().trim() || "";
@@ -5660,12 +5673,10 @@ ${markdown}
       id: "solve-wolfram",
       name: "Solve problem with WolframAlpha",
       checkCallback: (checking) => {
-        const activeLeaf = this.app.workspace.activeLeaf;
-        if (!activeLeaf)
-          return false;
+        const mdView = this.app.workspace.getActiveViewOfType(import_obsidian29.MarkdownView);
         let selected = "";
-        if (activeLeaf.view instanceof import_obsidian29.MarkdownView) {
-          selected = activeLeaf.view.editor.getSelection().trim();
+        if (mdView) {
+          selected = mdView.editor.getSelection().trim();
         } else {
           selected = window.getSelection()?.toString().trim() || "";
         }
@@ -5692,17 +5703,17 @@ ${markdown}
       id: "generate-retention-dashboard",
       name: "Generate spaced repetition retention dashboard",
       callback: async () => {
-        const md = await this.srsService.generateRetentionDashboardMarkdown();
+        const md = this.srsService.generateRetentionDashboardMarkdown();
         const path = (0, import_obsidian29.normalizePath)("\u{1F4CA} Learning Dashboard.md");
         const existing = this.app.vault.getAbstractFileByPath(path);
         let file;
-        if (existing) {
+        if (existing instanceof import_obsidian29.TFile) {
           file = existing;
           await this.app.vault.modify(existing, md);
         } else {
           file = await this.app.vault.create(path, md);
         }
-        await this.app.workspace.getLeaf().openFile(file);
+        await this.app.workspace.getLeaf(false).openFile(file);
         new import_obsidian29.Notice("Generated spaced repetition dashboard.");
       }
     });
@@ -5917,17 +5928,12 @@ ${md}
       this.selectionDebounceTimer = null;
       if (this.isSelectionSuspended)
         return;
-      const activeLeaf = this.app.workspace.activeLeaf;
-      const activeView = activeLeaf?.view;
-      if (!activeView) {
-        this.floatingPill.hide();
-        return;
-      }
+      const activeMdView = this.app.workspace.getActiveViewOfType(import_obsidian29.MarkdownView);
       let selectedText = "";
       let coords = null;
       let editor = void 0;
-      if (activeView instanceof import_obsidian29.MarkdownView) {
-        editor = activeView.editor;
+      if (activeMdView) {
+        editor = activeMdView.editor;
         selectedText = editor.getSelection().trim();
         if (selectedText) {
           coords = getSelectionCoordinates(editor);
@@ -5959,7 +5965,7 @@ ${md}
         if (isParagraph) {
           this.openParagraphModal(selectedText, editor);
         } else {
-          this.executeLookup(selectedText, coords, editor);
+          void this.executeLookup(selectedText, coords, editor);
         }
       } else if (this.settings.triggerMode === "selection_pill") {
         this.floatingPill.show(selectedText, coords);
@@ -5967,13 +5973,12 @@ ${md}
     }, 150);
   }
   triggerLookupFromCurrentSelection() {
-    const activeLeaf = this.app.workspace.activeLeaf;
-    const activeView = activeLeaf?.view;
+    const activeMdView = this.app.workspace.getActiveViewOfType(import_obsidian29.MarkdownView);
     let selected = "";
     let coords = null;
     let editor = void 0;
-    if (activeView instanceof import_obsidian29.MarkdownView) {
-      editor = activeView.editor;
+    if (activeMdView) {
+      editor = activeMdView.editor;
       selected = editor.getSelection().trim();
       if (selected) {
         coords = getSelectionCoordinates(editor);
@@ -6013,7 +6018,7 @@ ${md}
       width: 100,
       height: 20
     };
-    this.executeLookup(selected, coords, editor);
+    void this.executeLookup(selected, coords, editor);
   }
   async executeLookup(term, anchorRect, editor) {
     const cleanTerm = term.trim().replace(/[.,/#!$%^&*;:{}=\-_`~()?"']/g, "");
@@ -6060,7 +6065,7 @@ ${md}
       {
         onInsertSummary: (summary) => {
           if (!editor) {
-            navigator.clipboard.writeText(summary);
+            void navigator.clipboard.writeText(summary);
             new import_obsidian29.Notice("Summary copied to clipboard! (Cannot insert directly into PDF)");
             return;
           }
@@ -6075,7 +6080,7 @@ ${summary}
         },
         onInsertFootnote: (takeaway) => {
           if (!editor) {
-            navigator.clipboard.writeText(takeaway);
+            void navigator.clipboard.writeText(takeaway);
             new import_obsidian29.Notice("Footnote copied to clipboard! (Cannot insert directly into PDF)");
             return;
           }
@@ -6136,6 +6141,6 @@ ${summary}
     this.wolframService?.updateSettings(this.settings);
     this.vocabLogService?.updateSettings(this.settings);
     this.glossaryService?.updateSettings(this.settings);
-    this.updateStatusBar();
+    await this.updateStatusBar();
   }
 };

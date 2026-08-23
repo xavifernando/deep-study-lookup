@@ -104,7 +104,7 @@ export class ActiveRecallReviewModal extends Modal {
     const mainBody = contentEl.createDiv({ cls: "smart-lookup-review-body" });
 
     if (this.queue.length === 0) {
-      this.srsService.recordReviewCompletion();
+      void this.srsService.recordReviewCompletion();
       const emptyState = mainBody.createDiv({ cls: "smart-lookup-review-empty" });
       const party = emptyState.createSpan({ cls: "smart-lookup-party-icon" });
       setIcon(party, "sparkles");

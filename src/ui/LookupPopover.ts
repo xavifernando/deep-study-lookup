@@ -330,13 +330,13 @@ export class LookupPopover {
     }
 
     // 5. In-Vault Backlinks & Mentions Explorer
-    this.renderVaultMentions(body, term);
+    void this.renderVaultMentions(body, term);
   }
 
   private playAudio(): void {
     const audioPhonetic = this.currentEntry?.phonetics?.find((p) => p.audio);
     const text = this.currentEntry?.word || this.currentTerm;
-    AudioPlayer.playOrSpeak(text, audioPhonetic?.audio, this.settings.accentDialect);
+    void AudioPlayer.playOrSpeak(text, audioPhonetic?.audio, this.settings.accentDialect);
   }
 
   private renderImageBar(images: ImageResult[]): void {
@@ -382,7 +382,7 @@ export class LookupPopover {
 
       meaning.definitions.slice(0, 3).forEach((def, index) => {
         const defRow = meaningBlock.createDiv({ cls: "smart-lookup-def-row" });
-        defRow.createEl("span", { cls: "smart-lookup-def-num", text: `${index + 1}.` });
+        defRow.createSpan({ cls: "smart-lookup-def-num", text: `${index + 1}.` });
 
         const textWrap = defRow.createDiv({ cls: "smart-lookup-def-text-wrap" });
         textWrap.createSpan({ cls: "smart-lookup-def-text", text: def.definition });
@@ -435,7 +435,7 @@ export class LookupPopover {
           if (this.callbacks.onOpenWolframSolver) {
             this.callbacks.onOpenWolframSolver(term);
           } else {
-            this.displayWolframSolver(container, term);
+            void this.displayWolframSolver(container, term);
           }
         } else if (eng.id === "youtube") {
           if (this.callbacks.onOpenVideoPlayer) {
@@ -561,7 +561,7 @@ export class LookupPopover {
           });
           setIcon(audioBtn, "volume-2");
           audioBtn.onclick = () => {
-            AudioPlayer.playOrSpeak(res.translatedText, undefined, langCode);
+            void AudioPlayer.playOrSpeak(res.translatedText, undefined, langCode);
           };
 
           const copyBtn = actionsWrap.createEl("button", {
@@ -580,10 +580,10 @@ export class LookupPopover {
     };
 
     select.onchange = () => {
-      doTranslate(select.value);
+      void doTranslate(select.value);
     };
 
-    doTranslate(this.selectedTargetLang);
+    void doTranslate(this.selectedTargetLang);
   }
 
   // --- Deep-Dive Study Notes ---
@@ -794,7 +794,7 @@ export class LookupPopover {
       btn.onclick = () => {
         tierWrap.querySelectorAll(".smart-lookup-tier-btn").forEach((b) => b.removeClass("is-active"));
         btn.addClass("is-active");
-        fetchTier(t.id);
+        void fetchTier(t.id);
       };
     });
 
@@ -809,7 +809,7 @@ export class LookupPopover {
     });
 
     askBtn.onclick = () => {
-      fetchTier(this.activeComplexity);
+      void fetchTier(this.activeComplexity);
     };
   }
 
@@ -986,8 +986,8 @@ export class LookupPopover {
 
     const addItem = (label: string, desc: string, style: InsertFormatType, replace = false) => {
       const item = menu.createDiv({ cls: "smart-lookup-menu-item" });
-      item.createEl("div", { text: label, cls: "smart-lookup-menu-title" });
-      item.createEl("div", { text: desc, cls: "smart-lookup-menu-desc" });
+      item.createDiv({ text: label, cls: "smart-lookup-menu-title" });
+      item.createDiv({ text: desc, cls: "smart-lookup-menu-desc" });
 
       item.addEventListener("mousedown", (e) => {
         e.preventDefault();
@@ -1037,7 +1037,7 @@ export class LookupPopover {
       }
       new Notice(successNotice);
     } else {
-      navigator.clipboard.writeText(markdown);
+      void navigator.clipboard.writeText(markdown);
       new Notice("Copied to clipboard!");
     }
   }

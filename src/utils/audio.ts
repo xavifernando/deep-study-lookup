@@ -55,24 +55,24 @@ export class AudioPlayer {
           resolve();
         };
 
-        audio.onerror = (e) => {
+        audio.onerror = () => {
           this.cleanupBlob();
-          reject(e);
+          reject(new Error("Audio element playback failed"));
         };
 
         audio.play().catch((err) => {
           this.cleanupBlob();
-          reject(err);
+          reject(err instanceof Error ? err : new Error(String(err)));
         });
       });
-    } catch (err) {
+    } catch {
       // If direct requestUrl fails, try standard HTML5 Audio fallback
       return new Promise<void>((resolve, reject) => {
         const audio = new Audio(cleanUrl);
         this.currentAudio = audio;
         audio.onended = () => resolve();
-        audio.onerror = (e) => reject(e);
-        audio.play().catch(reject);
+        audio.onerror = () => reject(new Error("Fallback audio playback failed"));
+        audio.play().catch((err) => reject(err instanceof Error ? err : new Error(String(err))));
       });
     }
   }
