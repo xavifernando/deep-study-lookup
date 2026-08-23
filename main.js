@@ -804,6 +804,9 @@ var AnkiConnectClient = class {
     } catch {
     }
   }
+  async createCard(entry, options = {}) {
+    return this.addVocabularyCard(entry, options);
+  }
   async addVocabularyCard(entry, options = {}) {
     const deckName = options.deckName || this.settings.ankiDeckName || "Obsidian Vocabulary";
     await this.createDeckIfNotExists(deckName);
@@ -5578,7 +5581,7 @@ ${markdown}
           if (!this.settings.enableAnki)
             return;
           const deckName = targetDeck || this.settings.ankiDeckName;
-          await this.ankiClient.createCard(entry, {
+          await this.ankiClient.addVocabularyCard(entry, {
             deckName,
             translation,
             image,

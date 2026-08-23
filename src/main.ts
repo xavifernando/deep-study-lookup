@@ -264,7 +264,7 @@ export default class SmartLookupPlugin extends Plugin {
         onAddToAnki: async (entry: DictionaryEntry, translation?: string, image?: ImageResult | null, context?: string, targetDeck?: string) => {
           if (!this.settings.enableAnki) return;
           const deckName = targetDeck || this.settings.ankiDeckName;
-          await this.ankiClient.createCard(entry, {
+          await this.ankiClient.addVocabularyCard(entry, {
             deckName,
             translation,
             image,

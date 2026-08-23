@@ -23,6 +23,14 @@ interface AnkiResponse<T = unknown> {
   result?: T;
 }
 
+export interface AnkiCardOptions {
+  deckName?: string;
+  translation?: string;
+  image?: ImageResult | null;
+  contextSentence?: string;
+  activeNoteTitle?: string;
+}
+
 export class AnkiConnectClient {
   private settings: PluginSettings;
 
@@ -96,15 +104,13 @@ export class AnkiConnectClient {
     }
   }
 
+  async createCard(entry: DictionaryEntry, options: AnkiCardOptions = {}): Promise<number> {
+    return this.addVocabularyCard(entry, options);
+  }
+
   async addVocabularyCard(
     entry: DictionaryEntry,
-    options: {
-      deckName?: string;
-      translation?: string;
-      image?: ImageResult | null;
-      contextSentence?: string;
-      activeNoteTitle?: string;
-    } = {}
+    options: AnkiCardOptions = {}
   ): Promise<number> {
     const deckName = options.deckName || this.settings.ankiDeckName || "Obsidian Vocabulary";
     await this.createDeckIfNotExists(deckName);
