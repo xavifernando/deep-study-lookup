@@ -4882,7 +4882,7 @@ var SmartLookupSettingTab = class extends import_obsidian23.PluginSettingTab {
       (toggle) => toggle.setValue(this.plugin.settings.enableVocabLog).onChange(async (val) => {
         this.plugin.settings.enableVocabLog = val;
         await this.plugin.saveSettings();
-        this.display();
+        this.renderSettings();
       })
     );
     if (this.plugin.settings.enableVocabLog) {

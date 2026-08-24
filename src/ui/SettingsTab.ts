@@ -223,7 +223,7 @@ export class SmartLookupSettingTab extends PluginSettingTab {
         toggle.setValue(this.plugin.settings.enableVocabLog).onChange(async (val) => {
           this.plugin.settings.enableVocabLog = val;
           await this.plugin.saveSettings();
-          this.display();
+          this.renderSettings();
         })
       );
 
