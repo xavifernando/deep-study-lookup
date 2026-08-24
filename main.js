@@ -4734,6 +4734,13 @@ var SmartLookupSettingTab = class extends import_obsidian23.PluginSettingTab {
     super(app, plugin);
     this.plugin = plugin;
   }
+  getControlValue(key) {
+    return this.plugin.settings[key];
+  }
+  async setControlValue(key, value) {
+    this.plugin.settings[key] = value;
+    await this.plugin.saveSettings();
+  }
   getSettingDefinitions() {
     return [
       {
@@ -4741,15 +4748,11 @@ var SmartLookupSettingTab = class extends import_obsidian23.PluginSettingTab {
         description: "How lookup activates when text is selected in your notes",
         control: {
           type: "dropdown",
+          key: "triggerMode",
           options: {
             selection_pill: "Floating Pill (Recommended)",
             auto_popup: "Instant Popover on selection",
             manual_only: "Manual Hotkey / Context Menu only"
-          },
-          value: () => this.plugin.settings.triggerMode,
-          onChange: async (val) => {
-            this.plugin.settings.triggerMode = val;
-            await this.plugin.saveSettings();
           }
         }
       },
@@ -4758,16 +4761,12 @@ var SmartLookupSettingTab = class extends import_obsidian23.PluginSettingTab {
         description: "Preferred English dialect for audio speech synthesis",
         control: {
           type: "dropdown",
+          key: "accentDialect",
           options: {
             "en-US": "American English (US)",
             "en-GB": "British English (UK)",
             "en-AU": "Australian English (AU)",
             "en-IN": "Indian English (IN)"
-          },
-          value: () => this.plugin.settings.accentDialect,
-          onChange: async (val) => {
-            this.plugin.settings.accentDialect = val;
-            await this.plugin.saveSettings();
           }
         }
       },
@@ -4776,16 +4775,12 @@ var SmartLookupSettingTab = class extends import_obsidian23.PluginSettingTab {
         description: "Select the AI engine for conceptual breakdowns, Feynman explanations, and memory hooks",
         control: {
           type: "dropdown",
+          key: "aiProvider",
           options: {
             offline: "Offline Lexicon (Fast, No API Key needed)",
             gemini: "Google Gemini (Recommended - Generous Free Tier)",
             openai: "OpenAI Compatible / Custom Endpoint",
             ollama: "Ollama (Local AI, 100% Offline & Private)"
-          },
-          value: () => this.plugin.settings.aiProvider,
-          onChange: async (val) => {
-            this.plugin.settings.aiProvider = val;
-            await this.plugin.saveSettings();
           }
         }
       },
@@ -4794,11 +4789,7 @@ var SmartLookupSettingTab = class extends import_obsidian23.PluginSettingTab {
         description: "Enable 1-click exporting to Anki desktop via AnkiConnect",
         control: {
           type: "toggle",
-          value: () => this.plugin.settings.enableAnki,
-          onChange: async (val) => {
-            this.plugin.settings.enableAnki = val;
-            await this.plugin.saveSettings();
-          }
+          key: "enableAnki"
         }
       },
       {
@@ -4806,11 +4797,7 @@ var SmartLookupSettingTab = class extends import_obsidian23.PluginSettingTab {
         description: "Display visual diagrams, historical artwork, and illustrations",
         control: {
           type: "toggle",
-          value: () => this.plugin.settings.enableImages,
-          onChange: async (val) => {
-            this.plugin.settings.enableImages = val;
-            await this.plugin.saveSettings();
-          }
+          key: "enableImages"
         }
       },
       {
@@ -4818,11 +4805,7 @@ var SmartLookupSettingTab = class extends import_obsidian23.PluginSettingTab {
         description: "Show instant translation bar inside the lookup card",
         control: {
           type: "toggle",
-          value: () => this.plugin.settings.enableTranslation,
-          onChange: async (val) => {
-            this.plugin.settings.enableTranslation = val;
-            await this.plugin.saveSettings();
-          }
+          key: "enableTranslation"
         }
       },
       {
@@ -4830,16 +4813,15 @@ var SmartLookupSettingTab = class extends import_obsidian23.PluginSettingTab {
         description: "Generate deep-dive study packs, concept canvases, and active recall schedules",
         control: {
           type: "toggle",
-          value: () => this.plugin.settings.enableStudyNotes,
-          onChange: async (val) => {
-            this.plugin.settings.enableStudyNotes = val;
-            await this.plugin.saveSettings();
-          }
+          key: "enableStudyNotes"
         }
       }
     ];
   }
   display() {
+    this.renderSettings();
+  }
+  renderSettings() {
     const { containerEl } = this;
     containerEl.empty();
     new import_obsidian23.Setting(containerEl).setName("Smart Visual, Translation & Anki Lookup").setHeading();
@@ -4923,7 +4905,7 @@ var SmartLookupSettingTab = class extends import_obsidian23.PluginSettingTab {
       (toggle) => toggle.setValue(this.plugin.settings.enableTranslation).onChange(async (val) => {
         this.plugin.settings.enableTranslation = val;
         await this.plugin.saveSettings();
-        this.display();
+        this.renderSettings();
       })
     );
     if (this.plugin.settings.enableTranslation) {
@@ -4943,7 +4925,7 @@ var SmartLookupSettingTab = class extends import_obsidian23.PluginSettingTab {
       (toggle) => toggle.setValue(this.plugin.settings.enableAnki).onChange(async (val) => {
         this.plugin.settings.enableAnki = val;
         await this.plugin.saveSettings();
-        this.display();
+        this.renderSettings();
       })
     );
     if (this.plugin.settings.enableAnki) {
@@ -4991,7 +4973,7 @@ ${decks.join(", ")}`);
             this.plugin.settings.ankiDeckName = name;
             await this.plugin.saveSettings();
             new import_obsidian23.Notice(`Created and selected Anki deck "${name}"!`);
-            this.display();
+            this.renderSettings();
           } catch (err) {
             new import_obsidian23.Notice(`Could not create deck: ${err.message}`);
           } finally {
@@ -5031,7 +5013,7 @@ ${decks.join(", ")}`);
       (toggle) => toggle.setValue(this.plugin.settings.showImages).onChange(async (val) => {
         this.plugin.settings.showImages = val;
         await this.plugin.saveSettings();
-        this.display();
+        this.renderSettings();
       })
     );
     new import_obsidian23.Setting(containerEl).setName("AI Context Explainer & Mnemonics (Optional)").setHeading();
@@ -5039,7 +5021,7 @@ ${decks.join(", ")}`);
       (toggle) => toggle.setValue(this.plugin.settings.enableAI).onChange(async (val) => {
         this.plugin.settings.enableAI = val;
         await this.plugin.saveSettings();
-        this.display();
+        this.renderSettings();
       })
     );
     if (this.plugin.settings.enableAI) {
@@ -5051,7 +5033,7 @@ ${decks.join(", ")}`);
             this.plugin.settings.aiModel = presets2[0].id;
           }
           await this.plugin.saveSettings();
-          this.display();
+          this.renderSettings();
         })
       );
       const presets = MODEL_PRESETS[this.plugin.settings.aiProvider] || [];
@@ -5067,7 +5049,7 @@ ${decks.join(", ")}`);
             this.plugin.settings.aiModel = val;
           }
           await this.plugin.saveSettings();
-          this.display();
+          this.renderSettings();
         });
       });
       if (selectedModelValue === "custom" || this.plugin.settings.aiProvider === "custom") {
