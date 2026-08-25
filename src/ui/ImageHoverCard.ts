@@ -1,23 +1,12 @@
 import { ImageResult } from "../types";
 
 export class ImageHoverCard {
-  private el: HTMLElement;
+  private el: HTMLElement | null = null;
   private currentImage: ImageResult | null = null;
   private hideTimeout: number | null = null;
 
   constructor() {
-    this.el = document.body.createDiv({ cls: "smart-lookup-image-hover-card is-hidden" });
-
-    this.el.addEventListener("mouseenter", () => {
-      if (this.hideTimeout) {
-        window.clearTimeout(this.hideTimeout);
-        this.hideTimeout = null;
-      }
-    });
-
-    this.el.addEventListener("mouseleave", () => {
-      this.scheduleHide(150);
-    });
+    // Lazy element creation on show()
   }
 
   show(image: ImageResult, targetRect: { top: number; bottom: number; left: number; width: number }): void {
@@ -27,6 +16,23 @@ export class ImageHoverCard {
     }
 
     this.currentImage = image;
+
+    if (!this.el) {
+      this.el = document.createElement("div");
+      this.el.className = "smart-lookup-image-hover-card";
+
+      this.el.addEventListener("mouseenter", () => {
+        if (this.hideTimeout) {
+          window.clearTimeout(this.hideTimeout);
+          this.hideTimeout = null;
+        }
+      });
+
+      this.el.addEventListener("mouseleave", () => {
+        this.scheduleHide(150);
+      });
+    }
+
     this.el.empty();
 
     const imgContainer = this.el.createDiv({ cls: "smart-lookup-hover-img-wrap" });
@@ -48,7 +54,9 @@ export class ImageHoverCard {
       meta.createSpan({ text: `Source: ${image.source}` });
     }
 
-    this.el.removeClass("is-hidden");
+    if (!this.el.parentNode) {
+      document.body.appendChild(this.el);
+    }
 
     // Position adjacent to thumbnail
     const cardWidth = 300;
@@ -78,12 +86,14 @@ export class ImageHoverCard {
   }
 
   hide(): void {
-    this.el.addClass("is-hidden");
+    if (this.el && this.el.parentNode) {
+      this.el.remove();
+    }
     this.currentImage = null;
   }
 
   destroy(): void {
     if (this.hideTimeout) window.clearTimeout(this.hideTimeout);
-    this.el.remove();
+    this.hide();
   }
 }

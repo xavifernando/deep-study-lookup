@@ -13,7 +13,35 @@ export interface RectBounds {
   left: number;
 }
 
-export function getSelectionCoordinates(): RectBounds | null {
+export function getSelectionCoordinates(editor?: { cursorCoords?: (pos: boolean, mode: string) => { top: number; bottom: number; left: number; right: number } | null }): RectBounds | null {
+  // Method 1: Obsidian Editor API (100% reliable inside active CodeMirror 6 markdown leaves)
+  if (editor && typeof editor.cursorCoords === "function") {
+    try {
+      const fromCoords = editor.cursorCoords(true, "window");
+      const toCoords = editor.cursorCoords(false, "window");
+      if (fromCoords && toCoords) {
+        const top = Math.min(fromCoords.top, toCoords.top);
+        const bottom = Math.max(fromCoords.bottom, toCoords.bottom);
+        const left = Math.min(fromCoords.left, toCoords.left);
+        const right = Math.max(fromCoords.right, toCoords.right);
+        const width = Math.max(right - left, 10);
+        const height = Math.max(bottom - top, 16);
+        return {
+          x: left + width / 2,
+          y: top,
+          width,
+          height,
+          bottom,
+          top,
+          left,
+        };
+      }
+    } catch {
+      // fallback to DOM Selection
+    }
+  }
+
+  // Method 2: Standard DOM Selection (PDF view, Canvas, Reading mode)
   const selection = window.getSelection();
   if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
     return null;

@@ -3249,7 +3249,31 @@ var ActiveRecallReviewModal = class extends import_obsidian17.Modal {
 var import_obsidian18 = require("obsidian");
 
 // src/utils/dom.ts
-function getSelectionCoordinates() {
+function getSelectionCoordinates(editor) {
+  if (editor && typeof editor.cursorCoords === "function") {
+    try {
+      const fromCoords = editor.cursorCoords(true, "window");
+      const toCoords = editor.cursorCoords(false, "window");
+      if (fromCoords && toCoords) {
+        const top = Math.min(fromCoords.top, toCoords.top);
+        const bottom = Math.max(fromCoords.bottom, toCoords.bottom);
+        const left = Math.min(fromCoords.left, toCoords.left);
+        const right = Math.max(fromCoords.right, toCoords.right);
+        const width = Math.max(right - left, 10);
+        const height = Math.max(bottom - top, 16);
+        return {
+          x: left + width / 2,
+          y: top,
+          width,
+          height,
+          bottom,
+          top,
+          left
+        };
+      }
+    } catch {
+    }
+  }
   const selection = window.getSelection();
   if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
     return null;
@@ -3414,18 +3438,9 @@ var import_obsidian21 = require("obsidian");
 // src/ui/ImageHoverCard.ts
 var ImageHoverCard = class {
   constructor() {
+    this.el = null;
     this.currentImage = null;
     this.hideTimeout = null;
-    this.el = document.body.createDiv({ cls: "smart-lookup-image-hover-card is-hidden" });
-    this.el.addEventListener("mouseenter", () => {
-      if (this.hideTimeout) {
-        window.clearTimeout(this.hideTimeout);
-        this.hideTimeout = null;
-      }
-    });
-    this.el.addEventListener("mouseleave", () => {
-      this.scheduleHide(150);
-    });
   }
   show(image, targetRect) {
     if (this.hideTimeout) {
@@ -3433,6 +3448,19 @@ var ImageHoverCard = class {
       this.hideTimeout = null;
     }
     this.currentImage = image;
+    if (!this.el) {
+      this.el = document.createElement("div");
+      this.el.className = "smart-lookup-image-hover-card";
+      this.el.addEventListener("mouseenter", () => {
+        if (this.hideTimeout) {
+          window.clearTimeout(this.hideTimeout);
+          this.hideTimeout = null;
+        }
+      });
+      this.el.addEventListener("mouseleave", () => {
+        this.scheduleHide(150);
+      });
+    }
     this.el.empty();
     const imgContainer = this.el.createDiv({ cls: "smart-lookup-hover-img-wrap" });
     imgContainer.createEl("img", {
@@ -3450,7 +3478,9 @@ var ImageHoverCard = class {
       }
       meta.createSpan({ text: `Source: ${image.source}` });
     }
-    this.el.removeClass("is-hidden");
+    if (!this.el.parentNode) {
+      document.body.appendChild(this.el);
+    }
     const cardWidth = 300;
     const cardHeight = 240;
     let left = targetRect.left;
@@ -3476,13 +3506,15 @@ var ImageHoverCard = class {
     }, delay);
   }
   hide() {
-    this.el.addClass("is-hidden");
+    if (this.el && this.el.parentNode) {
+      this.el.remove();
+    }
     this.currentImage = null;
   }
   destroy() {
     if (this.hideTimeout)
       window.clearTimeout(this.hideTimeout);
-    this.el.remove();
+    this.hide();
   }
 };
 
@@ -3490,23 +3522,30 @@ var ImageHoverCard = class {
 var import_obsidian19 = require("obsidian");
 var ImageLightboxModal = class {
   constructor() {
+    this.overlayEl = null;
+    this.cardEl = null;
     this.currentImage = null;
-    this.overlayEl = document.body.createDiv({ cls: "smart-lookup-lightbox-overlay is-hidden" });
-    this.cardEl = this.overlayEl.createDiv({ cls: "smart-lookup-lightbox-card" });
-    this.overlayEl.addEventListener("click", (e) => {
-      if (e.target === this.overlayEl) {
-        this.hide();
-      }
-    });
-    document.addEventListener("keydown", (e) => {
-      if (!this.overlayEl.hasClass("is-hidden") && e.key === "Escape") {
-        this.hide();
-      }
-    });
   }
   show(image, onInsert) {
     this.currentImage = image;
     this.onInsertCallback = onInsert;
+    if (!this.overlayEl) {
+      this.overlayEl = document.createElement("div");
+      this.overlayEl.className = "smart-lookup-lightbox-overlay";
+      this.cardEl = this.overlayEl.createDiv({ cls: "smart-lookup-lightbox-card" });
+      this.overlayEl.addEventListener("click", (e) => {
+        if (e.target === this.overlayEl) {
+          this.hide();
+        }
+      });
+      document.addEventListener("keydown", (e) => {
+        if (this.overlayEl && this.overlayEl.parentNode && e.key === "Escape") {
+          this.hide();
+        }
+      });
+    }
+    if (!this.cardEl)
+      return;
     this.cardEl.empty();
     const header = this.cardEl.createDiv({ cls: "smart-lookup-lightbox-header" });
     header.createEl("h3", { text: image.title || "Image Preview", cls: "smart-lookup-lightbox-title" });
@@ -3551,15 +3590,18 @@ var ImageLightboxModal = class {
         new import_obsidian19.Notice("Image markdown copied to clipboard!");
       }
     };
-    this.overlayEl.removeClass("is-hidden");
+    if (!this.overlayEl.parentNode) {
+      document.body.appendChild(this.overlayEl);
+    }
   }
   hide() {
-    this.overlayEl.addClass("is-hidden");
+    if (this.overlayEl && this.overlayEl.parentNode) {
+      this.overlayEl.remove();
+    }
     this.currentImage = null;
   }
   destroy() {
     this.hide();
-    this.overlayEl.remove();
   }
 };
 
@@ -3761,21 +3803,22 @@ var LookupPopover = class {
     const key = e.key.toLowerCase();
     if (key === "a") {
       e.preventDefault();
-      const ankiBtn = this.el.querySelector(".smart-lookup-btn-anki");
+      const ankiBtn = this.el.querySelector(".smart-lookup-footer-btn-anki, .smart-lookup-btn-anki");
       ankiBtn?.click();
     } else if (key === "l") {
       e.preventDefault();
-      const logBtn = this.el.querySelector(".smart-lookup-btn-log");
+      const logBtn = this.el.querySelector(".smart-lookup-footer-btn-log, .smart-lookup-btn-log");
       logBtn?.click();
     } else if (key === "i") {
       e.preventDefault();
-      const insertBtn = this.el.querySelector(".smart-lookup-btn-primary");
+      const insertBtn = this.el.querySelector(".smart-lookup-footer-btn-primary, .smart-lookup-btn-primary");
       if (insertBtn && this.currentEntry) {
         this.openInsertMenu(insertBtn, this.currentEntry);
       }
     } else if (key === "w") {
       e.preventDefault();
       if (this.currentTerm && this.callbacks.onOpenWolframSolver) {
+        this.hide();
         this.callbacks.onOpenWolframSolver(this.currentTerm);
       }
     } else if (key === "s") {
@@ -3983,12 +4026,14 @@ var LookupPopover = class {
       btn.onclick = () => {
         if (eng.id === "wolfram") {
           if (this.callbacks.onOpenWolframSolver) {
+            this.hide();
             this.callbacks.onOpenWolframSolver(term);
           } else {
             void this.displayWolframSolver(container, term);
           }
         } else if (eng.id === "youtube") {
           if (this.callbacks.onOpenVideoPlayer) {
+            this.hide();
             this.callbacks.onOpenVideoPlayer(term);
           } else {
             const url = eng.urlTemplate.replace("{{query}}", encodeURIComponent(term));
@@ -4347,15 +4392,15 @@ ${heading}
   renderFooter(rootEl, entry) {
     const footer = rootEl.createDiv({ cls: "smart-lookup-footer" });
     if (entry) {
+      const actionsWrap = footer.createDiv({ cls: "smart-lookup-footer-actions" });
       if (this.settings.enableVocabLog) {
-        const logBtn = footer.createEl("button", {
-          cls: "smart-lookup-btn smart-lookup-btn-log",
-          attr: { title: `Save to Log (Hotkey: Ctrl+Shift+L)` }
+        const logBtn = actionsWrap.createEl("button", {
+          cls: "smart-lookup-footer-btn smart-lookup-footer-btn-log",
+          attr: { "aria-label": "Save to Vocabulary Log (Ctrl+Shift+L)", title: "Save to Vocabulary Log (Ctrl+Shift+L)" }
         });
         const logIcon = logBtn.createSpan({ cls: "smart-lookup-btn-icon" });
         (0, import_obsidian21.setIcon)(logIcon, "bookmark");
-        logBtn.createSpan({ text: "Log " });
-        logBtn.createEl("kbd", { cls: "smart-lookup-key-badge", text: "Ctrl+Shift+L" });
+        logBtn.createSpan({ text: "Log" });
         logBtn.onclick = async () => {
           logBtn.disabled = true;
           try {
@@ -4376,19 +4421,18 @@ ${heading}
         };
       }
       if (this.settings.enableAnki) {
-        const ankiWrap = footer.createDiv({ cls: "smart-lookup-anki-button-group" });
+        const ankiWrap = actionsWrap.createDiv({ cls: "smart-lookup-footer-anki-group" });
         const currentDeck = this.selectedAnkiDeck || this.settings.ankiDeckName || "Default";
         const ankiBtn = ankiWrap.createEl("button", {
-          cls: "smart-lookup-btn smart-lookup-btn-anki",
-          attr: { title: `Add to Anki deck "${currentDeck}" (Hotkey: Ctrl+Shift+A)` }
+          cls: "smart-lookup-footer-btn smart-lookup-footer-btn-anki",
+          attr: { "aria-label": `Add to Anki (${currentDeck}) [Ctrl+Shift+A]`, title: `Add to Anki (${currentDeck}) [Ctrl+Shift+A]` }
         });
         const ankiIcon = ankiBtn.createSpan({ cls: "smart-lookup-btn-icon" });
         (0, import_obsidian21.setIcon)(ankiIcon, "layers");
-        const ankiLabel = ankiBtn.createSpan({ text: `Anki (${currentDeck}) ` });
-        ankiBtn.createEl("kbd", { cls: "smart-lookup-key-badge", text: "Ctrl+Shift+A" });
+        const ankiLabel = ankiBtn.createSpan({ text: "Anki" });
         ankiBtn.onclick = async () => {
           ankiBtn.disabled = true;
-          ankiBtn.setText("Sending...");
+          ankiLabel.setText("Sending...");
           try {
             if (this.callbacks.onAddToAnki) {
               const img = this.currentImages.length > 0 ? this.currentImages[0] : null;
@@ -4400,42 +4444,42 @@ ${heading}
                 this.contextSentence,
                 targetDeck
               );
-              ankiBtn.setText("Added \u2713");
+              ankiLabel.setText("Added \u2713");
               new import_obsidian21.Notice(`Card added to Anki deck "${targetDeck}"!`);
             }
           } catch (err) {
             ankiBtn.disabled = false;
-            ankiLabel.setText(`Anki (${currentDeck}) `);
+            ankiLabel.setText("Anki");
             new import_obsidian21.Notice(`Anki Notice: ${err.message}`);
           }
         };
         if (this.ankiClient) {
           const pickerBtn = ankiWrap.createEl("button", {
-            cls: "smart-lookup-btn smart-lookup-btn-anki-picker",
-            attr: { title: "Choose or Create Anki Deck" }
+            cls: "smart-lookup-footer-btn-anki-picker",
+            attr: { "aria-label": `Select Deck (Current: ${currentDeck})`, title: `Select Deck (Current: ${currentDeck})` }
           });
           (0, import_obsidian21.setIcon)(pickerBtn, "chevron-down");
           pickerBtn.onclick = (e) => {
             e.preventDefault();
             e.stopPropagation();
             if (this.ankiClient) {
+              this.hide();
               new AnkiDeckModal(this.app, this.ankiClient, currentDeck, (newDeck) => {
                 this.selectedAnkiDeck = newDeck;
                 this.settings.ankiDeckName = newDeck;
-                ankiLabel.setText(`Anki (${newDeck}) `);
-                ankiBtn.setAttribute("title", `Add to Anki deck "${newDeck}" (Hotkey: Ctrl+Shift+A)`);
+                new import_obsidian21.Notice(`Switched to Anki deck "${newDeck}"`);
               }).open();
             }
           };
         }
       }
-      const insertBtn = footer.createEl("button", {
-        cls: "smart-lookup-btn smart-lookup-btn-primary",
-        attr: { title: "Insert into note (Hotkey: Ctrl+Shift+I)" }
+      const insertBtn = actionsWrap.createEl("button", {
+        cls: "smart-lookup-footer-btn smart-lookup-footer-btn-primary",
+        attr: { "aria-label": "Insert into note (Ctrl+Shift+I)", title: "Insert into note (Ctrl+Shift+I)" }
       });
-      insertBtn.createSpan({ text: "Insert " });
-      insertBtn.createEl("kbd", { cls: "smart-lookup-key-badge", text: "Ctrl+Shift+I" });
-      (0, import_obsidian21.setIcon)(insertBtn.createSpan({ cls: "smart-lookup-btn-icon" }), "file-plus");
+      const insertIcon = insertBtn.createSpan({ cls: "smart-lookup-btn-icon" });
+      (0, import_obsidian21.setIcon)(insertIcon, "file-plus");
+      insertBtn.createSpan({ text: "Insert" });
       insertBtn.addEventListener("mousedown", (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -4445,12 +4489,13 @@ ${heading}
         e.stopPropagation();
         this.openInsertMenu(insertBtn, entry);
       };
-      const copyBtn = footer.createEl("button", {
-        cls: "smart-lookup-btn",
-        attr: { title: "Copy definition" }
+      const copyBtn = actionsWrap.createEl("button", {
+        cls: "smart-lookup-footer-btn",
+        attr: { "aria-label": "Copy Markdown Definition", title: "Copy Markdown Definition" }
       });
-      copyBtn.createSpan({ text: "Copy " });
-      (0, import_obsidian21.setIcon)(copyBtn.createSpan({ cls: "smart-lookup-btn-icon" }), "copy");
+      const copyIcon = copyBtn.createSpan({ cls: "smart-lookup-btn-icon" });
+      (0, import_obsidian21.setIcon)(copyIcon, "copy");
+      copyBtn.createSpan({ text: "Copy" });
       copyBtn.onclick = async () => {
         const md = formatDefinitionByStyle(entry, this.settings.defaultInsertFormat, this.settings.insertTemplate);
         await navigator.clipboard.writeText(md);
@@ -4733,90 +4778,6 @@ var SmartLookupSettingTab = class extends import_obsidian23.PluginSettingTab {
   constructor(app, plugin) {
     super(app, plugin);
     this.plugin = plugin;
-  }
-  getControlValue(key) {
-    return this.plugin.settings[key];
-  }
-  async setControlValue(key, value) {
-    this.plugin.settings[key] = value;
-    await this.plugin.saveSettings();
-  }
-  getSettingDefinitions() {
-    return [
-      {
-        name: "Trigger Mode",
-        description: "How lookup activates when text is selected in your notes",
-        control: {
-          type: "dropdown",
-          key: "triggerMode",
-          options: {
-            selection_pill: "Floating Pill (Recommended)",
-            auto_popup: "Instant Popover on selection",
-            manual_only: "Manual Hotkey / Context Menu only"
-          }
-        }
-      },
-      {
-        name: "Pronunciation Dialect / Accent",
-        description: "Preferred English dialect for audio speech synthesis",
-        control: {
-          type: "dropdown",
-          key: "accentDialect",
-          options: {
-            "en-US": "American English (US)",
-            "en-GB": "British English (UK)",
-            "en-AU": "Australian English (AU)",
-            "en-IN": "Indian English (IN)"
-          }
-        }
-      },
-      {
-        name: "AI Explanation Provider",
-        description: "Select the AI engine for conceptual breakdowns, Feynman explanations, and memory hooks",
-        control: {
-          type: "dropdown",
-          key: "aiProvider",
-          options: {
-            offline: "Offline Lexicon (Fast, No API Key needed)",
-            gemini: "Google Gemini (Recommended - Generous Free Tier)",
-            openai: "OpenAI Compatible / Custom Endpoint",
-            ollama: "Ollama (Local AI, 100% Offline & Private)"
-          }
-        }
-      },
-      {
-        name: "Sync to Anki Flashcards",
-        description: "Enable 1-click exporting to Anki desktop via AnkiConnect",
-        control: {
-          type: "toggle",
-          key: "enableAnki"
-        }
-      },
-      {
-        name: "Show Images from Wikimedia & Unsplash",
-        description: "Display visual diagrams, historical artwork, and illustrations",
-        control: {
-          type: "toggle",
-          key: "enableImages"
-        }
-      },
-      {
-        name: "Multi-Language Translation",
-        description: "Show instant translation bar inside the lookup card",
-        control: {
-          type: "toggle",
-          key: "enableTranslation"
-        }
-      },
-      {
-        name: "Feynman Study Notes & Spaced Repetition",
-        description: "Generate deep-dive study packs, concept canvases, and active recall schedules",
-        control: {
-          type: "toggle",
-          key: "enableStudyNotes"
-        }
-      }
-    ];
   }
   display() {
     this.renderSettings();

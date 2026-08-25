@@ -3,15 +3,19 @@
    Definitive Final Production Edition
    ========================================================== */
 
-/* Utility hidden class */
-.is-hidden {
+/* Utility hidden class with high specificity */
+.is-hidden,
+.smart-lookup-lightbox-overlay.is-hidden,
+.smart-lookup-image-hover-card.is-hidden,
+.smart-lookup-floating-pill.is-hidden,
+.smart-lookup-popover.is-hidden {
   display: none;
 }
 
 /* Floating Selection Trigger Pill */
 .smart-lookup-floating-pill {
   position: fixed;
-  z-index: 999999;
+  z-index: 9999998;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -47,10 +51,10 @@
 /* Main Lookup Popover */
 .smart-lookup-popover {
   position: fixed;
-  z-index: 1000000;
-  width: 440px;
+  z-index: 10000;
+  width: 460px;
   max-width: calc(100vw - 28px);
-  max-height: 570px;
+  max-height: 580px;
   background: var(--background-primary);
   border: 1px solid var(--background-modifier-border);
   border-radius: var(--radius-m, 10px);
@@ -949,7 +953,7 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 6px;
+  gap: 8px;
   padding: 8px 12px;
   border-top: 1px solid var(--background-modifier-border);
   background: var(--background-secondary);
@@ -957,67 +961,116 @@
   z-index: 10;
 }
 
-.smart-lookup-btn {
+.smart-lookup-footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  flex-wrap: nowrap;
+}
+
+.smart-lookup-footer-btn {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
+  gap: 5px;
+  height: 28px;
+  padding: 0 10px;
   font-size: 12px;
-  padding: 5px 10px;
-  border-radius: var(--radius-s, 4px);
+  font-weight: 500;
+  border-radius: var(--radius-s, 6px);
   cursor: pointer;
   border: 1px solid var(--background-modifier-border);
   background: var(--background-primary);
   color: var(--text-normal);
+  white-space: nowrap;
+  flex-shrink: 0;
   transition: all 0.15s ease;
+  user-select: none;
 }
 
-.smart-lookup-btn:hover {
+.smart-lookup-footer-btn:hover {
   background: var(--background-modifier-hover);
+  color: var(--text-normal);
+  transform: translateY(-1px);
 }
 
-.smart-lookup-btn-primary {
+.smart-lookup-footer-btn-primary {
   background: var(--interactive-accent);
   color: var(--text-on-accent);
   border-color: var(--interactive-accent);
 }
 
-.smart-lookup-btn-primary:hover {
+.smart-lookup-footer-btn-primary:hover {
   background: var(--interactive-accent-hover, var(--interactive-accent));
+  color: var(--text-on-accent);
 }
 
-.smart-lookup-btn-deepdive {
-  background: #7c3aed;
-  color: #ffffff;
-  border-color: #6d28d9;
-}
-
-.smart-lookup-btn-deepdive:hover {
-  background: #6d28d9;
-}
-
-.smart-lookup-btn-anki {
-  background: #2563eb;
-  color: #ffffff;
-  border-color: #1d4ed8;
-}
-
-.smart-lookup-btn-anki:hover {
-  background: #1d4ed8;
-}
-
-.smart-lookup-btn-log {
+.smart-lookup-footer-btn-log {
   background: #059669;
   color: #ffffff;
   border-color: #047857;
 }
 
-.smart-lookup-btn-log:hover {
+.smart-lookup-footer-btn-log:hover {
   background: #047857;
+  color: #ffffff;
+}
+
+/* Anki Split Button Group */
+.smart-lookup-footer-anki-group {
+  display: inline-flex;
+  align-items: stretch;
+  border-radius: var(--radius-s, 6px);
+  flex-shrink: 0;
+  overflow: hidden;
+  border: 1px solid #1d4ed8;
+}
+
+.smart-lookup-footer-anki-group .smart-lookup-footer-btn-anki {
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: 0;
+  height: 28px;
+  padding: 0 8px;
+  gap: 5px;
+  border-right: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.smart-lookup-footer-anki-group .smart-lookup-footer-btn-anki:hover {
+  background: #1d4ed8;
+  color: #ffffff;
+}
+
+.smart-lookup-footer-anki-group .smart-lookup-footer-btn-anki-picker {
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: 0;
+  height: 28px;
+  width: 22px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.smart-lookup-footer-anki-group .smart-lookup-footer-btn-anki-picker:hover {
+  background: #1d4ed8;
+}
+
+.smart-lookup-footer-anki-group .smart-lookup-footer-btn-anki-picker svg {
+  width: 12px;
+  height: 12px;
 }
 
 .smart-lookup-btn-icon svg {
   width: 13px;
   height: 13px;
+  display: block;
 }
 
 /* Status Bar & Cursor */

@@ -141,21 +141,22 @@ export class LookupPopover {
     const key = e.key.toLowerCase();
     if (key === "a") {
       e.preventDefault();
-      const ankiBtn = this.el.querySelector(".smart-lookup-btn-anki") as HTMLButtonElement;
+      const ankiBtn = this.el.querySelector(".smart-lookup-footer-btn-anki, .smart-lookup-btn-anki") as HTMLButtonElement;
       ankiBtn?.click();
     } else if (key === "l") {
       e.preventDefault();
-      const logBtn = this.el.querySelector(".smart-lookup-btn-log") as HTMLButtonElement;
+      const logBtn = this.el.querySelector(".smart-lookup-footer-btn-log, .smart-lookup-btn-log") as HTMLButtonElement;
       logBtn?.click();
     } else if (key === "i") {
       e.preventDefault();
-      const insertBtn = this.el.querySelector(".smart-lookup-btn-primary") as HTMLButtonElement;
+      const insertBtn = this.el.querySelector(".smart-lookup-footer-btn-primary, .smart-lookup-btn-primary") as HTMLButtonElement;
       if (insertBtn && this.currentEntry) {
         this.openInsertMenu(insertBtn, this.currentEntry);
       }
     } else if (key === "w") {
       e.preventDefault();
       if (this.currentTerm && this.callbacks.onOpenWolframSolver) {
+        this.hide();
         this.callbacks.onOpenWolframSolver(this.currentTerm);
       }
     } else if (key === "s") {
@@ -433,12 +434,14 @@ export class LookupPopover {
       btn.onclick = () => {
         if (eng.id === "wolfram") {
           if (this.callbacks.onOpenWolframSolver) {
+            this.hide();
             this.callbacks.onOpenWolframSolver(term);
           } else {
             void this.displayWolframSolver(container, term);
           }
         } else if (eng.id === "youtube") {
           if (this.callbacks.onOpenVideoPlayer) {
+            this.hide();
             this.callbacks.onOpenVideoPlayer(term);
           } else {
             const url = eng.urlTemplate.replace("{{query}}", encodeURIComponent(term));
@@ -847,16 +850,17 @@ export class LookupPopover {
     const footer = rootEl.createDiv({ cls: "smart-lookup-footer" });
 
     if (entry) {
-      // 📚 Save to Vocab Log Note (Hotkey: L)
+      const actionsWrap = footer.createDiv({ cls: "smart-lookup-footer-actions" });
+
+      // 📚 Save to Vocab Log Note (Hotkey: Ctrl+Shift+L)
       if (this.settings.enableVocabLog) {
-        const logBtn = footer.createEl("button", {
-          cls: "smart-lookup-btn smart-lookup-btn-log",
-          attr: { title: `Save to Log (Hotkey: Ctrl+Shift+L)` },
+        const logBtn = actionsWrap.createEl("button", {
+          cls: "smart-lookup-footer-btn smart-lookup-footer-btn-log",
+          attr: { "aria-label": "Save to Vocabulary Log (Ctrl+Shift+L)", title: "Save to Vocabulary Log (Ctrl+Shift+L)" },
         });
         const logIcon = logBtn.createSpan({ cls: "smart-lookup-btn-icon" });
         setIcon(logIcon, "bookmark");
-        logBtn.createSpan({ text: "Log " });
-        logBtn.createEl("kbd", { cls: "smart-lookup-key-badge", text: "Ctrl+Shift+L" });
+        logBtn.createSpan({ text: "Log" });
 
         logBtn.onclick = async () => {
           logBtn.disabled = true;
@@ -878,24 +882,22 @@ export class LookupPopover {
         };
       }
 
-      // 🎴 Add to Anki Button with Deck Selector & Creator (Hotkey: Ctrl+Shift+A)
+      // 🎴 Add to Anki Button with Deck Selector (Hotkey: Ctrl+Shift+A)
       if (this.settings.enableAnki) {
-        const ankiWrap = footer.createDiv({ cls: "smart-lookup-anki-button-group" });
-
+        const ankiWrap = actionsWrap.createDiv({ cls: "smart-lookup-footer-anki-group" });
         const currentDeck = this.selectedAnkiDeck || this.settings.ankiDeckName || "Default";
 
         const ankiBtn = ankiWrap.createEl("button", {
-          cls: "smart-lookup-btn smart-lookup-btn-anki",
-          attr: { title: `Add to Anki deck "${currentDeck}" (Hotkey: Ctrl+Shift+A)` },
+          cls: "smart-lookup-footer-btn smart-lookup-footer-btn-anki",
+          attr: { "aria-label": `Add to Anki (${currentDeck}) [Ctrl+Shift+A]`, title: `Add to Anki (${currentDeck}) [Ctrl+Shift+A]` },
         });
         const ankiIcon = ankiBtn.createSpan({ cls: "smart-lookup-btn-icon" });
         setIcon(ankiIcon, "layers");
-        const ankiLabel = ankiBtn.createSpan({ text: `Anki (${currentDeck}) ` });
-        ankiBtn.createEl("kbd", { cls: "smart-lookup-key-badge", text: "Ctrl+Shift+A" });
+        const ankiLabel = ankiBtn.createSpan({ text: "Anki" });
 
         ankiBtn.onclick = async () => {
           ankiBtn.disabled = true;
-          ankiBtn.setText("Sending...");
+          ankiLabel.setText("Sending...");
           try {
             if (this.callbacks.onAddToAnki) {
               const img = this.currentImages.length > 0 ? this.currentImages[0] : null;
@@ -907,20 +909,20 @@ export class LookupPopover {
                 this.contextSentence,
                 targetDeck
               );
-              ankiBtn.setText("Added ✓");
+              ankiLabel.setText("Added ✓");
               new Notice(`Card added to Anki deck "${targetDeck}"!`);
             }
           } catch (err) {
             ankiBtn.disabled = false;
-            ankiLabel.setText(`Anki (${currentDeck}) `);
+            ankiLabel.setText("Anki");
             new Notice(`Anki Notice: ${(err as Error).message}`);
           }
         };
 
         if (this.ankiClient) {
           const pickerBtn = ankiWrap.createEl("button", {
-            cls: "smart-lookup-btn smart-lookup-btn-anki-picker",
-            attr: { title: "Choose or Create Anki Deck" },
+            cls: "smart-lookup-footer-btn-anki-picker",
+            attr: { "aria-label": `Select Deck (Current: ${currentDeck})`, title: `Select Deck (Current: ${currentDeck})` },
           });
           setIcon(pickerBtn, "chevron-down");
 
@@ -928,25 +930,25 @@ export class LookupPopover {
             e.preventDefault();
             e.stopPropagation();
             if (this.ankiClient) {
+              this.hide();
               new AnkiDeckModal(this.app, this.ankiClient, currentDeck, (newDeck) => {
                 this.selectedAnkiDeck = newDeck;
                 this.settings.ankiDeckName = newDeck;
-                ankiLabel.setText(`Anki (${newDeck}) `);
-                ankiBtn.setAttribute("title", `Add to Anki deck "${newDeck}" (Hotkey: Ctrl+Shift+A)`);
+                new Notice(`Switched to Anki deck "${newDeck}"`);
               }).open();
             }
           };
         }
       }
 
-      // Insert Dropdown Button (Hotkey: Ctrl+Shift+I)
-      const insertBtn = footer.createEl("button", {
-        cls: "smart-lookup-btn smart-lookup-btn-primary",
-        attr: { title: "Insert into note (Hotkey: Ctrl+Shift+I)" },
+      // ➕ Insert Dropdown Button (Hotkey: Ctrl+Shift+I)
+      const insertBtn = actionsWrap.createEl("button", {
+        cls: "smart-lookup-footer-btn smart-lookup-footer-btn-primary",
+        attr: { "aria-label": "Insert into note (Ctrl+Shift+I)", title: "Insert into note (Ctrl+Shift+I)" },
       });
-      insertBtn.createSpan({ text: "Insert " });
-      insertBtn.createEl("kbd", { cls: "smart-lookup-key-badge", text: "Ctrl+Shift+I" });
-      setIcon(insertBtn.createSpan({ cls: "smart-lookup-btn-icon" }), "file-plus");
+      const insertIcon = insertBtn.createSpan({ cls: "smart-lookup-btn-icon" });
+      setIcon(insertIcon, "file-plus");
+      insertBtn.createSpan({ text: "Insert" });
 
       insertBtn.addEventListener("mousedown", (e) => {
         e.preventDefault();
@@ -959,13 +961,14 @@ export class LookupPopover {
         this.openInsertMenu(insertBtn, entry);
       };
 
-      // Copy Definition Button
-      const copyBtn = footer.createEl("button", {
-        cls: "smart-lookup-btn",
-        attr: { title: "Copy definition" },
+      // 📋 Copy Definition Button
+      const copyBtn = actionsWrap.createEl("button", {
+        cls: "smart-lookup-footer-btn",
+        attr: { "aria-label": "Copy Markdown Definition", title: "Copy Markdown Definition" },
       });
-      copyBtn.createSpan({ text: "Copy " });
-      setIcon(copyBtn.createSpan({ cls: "smart-lookup-btn-icon" }), "copy");
+      const copyIcon = copyBtn.createSpan({ cls: "smart-lookup-btn-icon" });
+      setIcon(copyIcon, "copy");
+      copyBtn.createSpan({ text: "Copy" });
 
       copyBtn.onclick = async () => {
         const md = formatDefinitionByStyle(entry, this.settings.defaultInsertFormat, this.settings.insertTemplate);

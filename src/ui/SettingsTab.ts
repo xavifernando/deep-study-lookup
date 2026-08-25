@@ -1,4 +1,4 @@
-import { App, Notice, PluginSettingTab, Setting, SettingDefinitionItem } from "obsidian";
+import { App, Notice, PluginSettingTab, Setting } from "obsidian";
 import type SmartLookupPlugin from "../main";
 import { AccentDialectType, AIProviderType, InsertFormatType, MODEL_PRESETS, SUPPORTED_LANGUAGES, TriggerMode } from "../types";
 
@@ -8,93 +8,6 @@ export class SmartLookupSettingTab extends PluginSettingTab {
   constructor(app: App, plugin: SmartLookupPlugin) {
     super(app, plugin);
     this.plugin = plugin;
-  }
-
-  getControlValue(key: string): unknown {
-    return (this.plugin.settings as Record<string, unknown>)[key];
-  }
-
-  async setControlValue(key: string, value: unknown): Promise<void> {
-    (this.plugin.settings as Record<string, unknown>)[key] = value;
-    await this.plugin.saveSettings();
-  }
-
-  getSettingDefinitions(): SettingDefinitionItem[] {
-    return [
-      {
-        name: "Trigger Mode",
-        description: "How lookup activates when text is selected in your notes",
-        control: {
-          type: "dropdown",
-          key: "triggerMode",
-          options: {
-            selection_pill: "Floating Pill (Recommended)",
-            auto_popup: "Instant Popover on selection",
-            manual_only: "Manual Hotkey / Context Menu only",
-          },
-        },
-      },
-      {
-        name: "Pronunciation Dialect / Accent",
-        description: "Preferred English dialect for audio speech synthesis",
-        control: {
-          type: "dropdown",
-          key: "accentDialect",
-          options: {
-            "en-US": "American English (US)",
-            "en-GB": "British English (UK)",
-            "en-AU": "Australian English (AU)",
-            "en-IN": "Indian English (IN)",
-          },
-        },
-      },
-      {
-        name: "AI Explanation Provider",
-        description: "Select the AI engine for conceptual breakdowns, Feynman explanations, and memory hooks",
-        control: {
-          type: "dropdown",
-          key: "aiProvider",
-          options: {
-            offline: "Offline Lexicon (Fast, No API Key needed)",
-            gemini: "Google Gemini (Recommended - Generous Free Tier)",
-            openai: "OpenAI Compatible / Custom Endpoint",
-            ollama: "Ollama (Local AI, 100% Offline & Private)",
-          },
-        },
-      },
-      {
-        name: "Sync to Anki Flashcards",
-        description: "Enable 1-click exporting to Anki desktop via AnkiConnect",
-        control: {
-          type: "toggle",
-          key: "enableAnki",
-        },
-      },
-      {
-        name: "Show Images from Wikimedia & Unsplash",
-        description: "Display visual diagrams, historical artwork, and illustrations",
-        control: {
-          type: "toggle",
-          key: "enableImages",
-        },
-      },
-      {
-        name: "Multi-Language Translation",
-        description: "Show instant translation bar inside the lookup card",
-        control: {
-          type: "toggle",
-          key: "enableTranslation",
-        },
-      },
-      {
-        name: "Feynman Study Notes & Spaced Repetition",
-        description: "Generate deep-dive study packs, concept canvases, and active recall schedules",
-        control: {
-          type: "toggle",
-          key: "enableStudyNotes",
-        },
-      },
-    ];
   }
 
   display(): void {
